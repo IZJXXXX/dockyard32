@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import { promises as fs } from 'node:fs';
 
 import { WorkbenchOperationLock } from './core/operationLock';
-import { importMdkProjectToCmake } from './core/mdkImport';
+import {
+  importMdkProjectToCmake,
+  previewMdkImport,
+} from './core/mdkImport';
 import { exportCmakeProjectToMdk } from './core/mdkExport';
 import { parseMdkProject } from './core/mdk';
 import { detectProject } from './core/project';
@@ -282,6 +285,38 @@ async function importMdkWithUi(
       return;
     }
   }
+  const preview = await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: 'STM32 Workbench: Inspecting Keil import inputs',
+    },
+    () => previewMdkImport(projectFile, {
+      sourceRoot,
+      targetName,
+      device: selectedDevice,
+    }),
+  );
+  if (!preview.success) {
+    await vscode.window.showErrorMessage(
+      `STM32 Workbench: Cannot safely import this project — ${preview.error ?? 'unknown error'}`,
+    );
+    return;
+  }
+  const externalSummary = preview.externalDirectories.length === 0
+    ? 'No files outside the approved project root.'
+    : `External directories (${preview.externalDirectoryCount}):\n${preview.externalDirectories.map((directory) => `• ${directory}`).join('\n')}${preview.externalDirectoryCount > preview.externalDirectories.length ? '\n• …' : ''}`;
+  const continueLabel = 'Choose Empty Destination…';
+  const previewChoice = await vscode.window.showWarningMessage(
+    `Import ${preview.fileCount} selected files (${formatByteCount(preview.totalBytes)}) from Keil target ${preview.targetName ?? 'unknown'}?`,
+    {
+      modal: true,
+      detail: `${preview.externalFileCount} external file${preview.externalFileCount === 1 ? '' : 's'} will be copied individually into External/.\n\n${externalSummary}`,
+    },
+    continueLabel,
+  );
+  if (previewChoice !== continueLabel) {
+    return;
+  }
   const destination = await chooseConversionDirectory(
     'Import into this empty folder',
     'defaultImportDirectory',
@@ -378,22 +413,12 @@ async function exportMdkWithUi(
   if (selectedDevice === undefined) {
     return;
   }
-  let allowNonEmptyDestination = false;
   try {
     if ((await fs.readdir(destination)).length > 0) {
-      const proceed = 'Export and overwrite generated files';
-      const selected = await vscode.window.showWarningMessage(
-        'The selected export folder is not empty.',
-        {
-          modal: true,
-          detail: 'Existing unrelated files are not deleted, but generated files with the same names may be replaced.',
-        },
-        proceed,
+      await vscode.window.showErrorMessage(
+        'STM32 Workbench: Choose an empty folder for Keil export. Existing files are never overwritten.',
       );
-      if (selected !== proceed) {
-        return;
-      }
-      allowNonEmptyDestination = true;
+      return;
     }
   } catch {
     // A missing destination is created by the Core exporter.
@@ -406,7 +431,6 @@ async function exportMdkWithUi(
     () => exportCmakeProjectToMdk(project, {
       destinationDirectory: destination,
       device: selectedDevice,
-      allowNonEmptyDestination,
     }),
   );
   if (!result.success || result.projectFile === undefined) {
@@ -423,6 +447,16 @@ async function exportMdkWithUi(
   await vscode.window.showInformationMessage(
     `STM32 Workbench: Keil MDK project exported${suffix}`,
   );
+}
+
+function formatByteCount(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KiB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
 }
 
 async function chooseMcu(current?: string): Promise<string | undefined> {

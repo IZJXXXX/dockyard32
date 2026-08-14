@@ -4,6 +4,7 @@
   "description": "A lightweight, graphical STM32 workflow for Visual Studio Code.",
   "version": "0.1.0",
   "publisher": "izjxxxx",
+  "icon": "media/stm32-workbench.png",
   "license": "MIT",
   "repository": {
     "type": "git",

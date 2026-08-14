@@ -148,7 +148,6 @@ export async function exportCmakeProjectToMdk(
   );
   const destinationError = await validateConversionDestination(
     exportDirectory,
-    options.allowNonEmptyDestination,
   );
   if (destinationError !== undefined) {
     return { success: false, warnings, error: destinationError };

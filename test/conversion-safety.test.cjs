@@ -5,7 +5,10 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { exportCmakeProjectToMdk } = require('../out/core/mdkExport.js');
-const { importMdkProjectToCmake } = require('../out/core/mdkImport.js');
+const {
+  importMdkProjectToCmake,
+  previewMdkImport,
+} = require('../out/core/mdkImport.js');
 
 test('MDK import rejects a home-directory source root', async (t) => {
   const fixture = await createMdkFixture();
@@ -47,6 +50,30 @@ test('MDK import rejects a broad home include directory', async (t) => {
   assert.match(result.error, /broad input directory/);
 });
 
+test('MDK import resolves include symlinks before broad-directory checks', async (t) => {
+  const fixture = await createMdkFixture();
+  const destination = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-symlink-include-'));
+  const linkedHome = path.join(fixture.root, 'linked-home');
+  await fs.symlink(os.homedir(), linkedHome);
+  t.after(() => Promise.all([
+    fs.rm(fixture.root, { recursive: true, force: true }),
+    fs.rm(fixture.external, { recursive: true, force: true }),
+    fs.rm(destination, { recursive: true, force: true }),
+  ]));
+  const xml = await fs.readFile(fixture.projectFile, 'utf8');
+  await fs.writeFile(
+    fixture.projectFile,
+    xml.replace(path.join(fixture.external, 'Inc'), linkedHome),
+  );
+  const result = await importMdkProjectToCmake(fixture.projectFile, {
+    destinationDirectory: destination,
+    sourceRoot: fixture.root,
+    targetName: 'SafeTarget',
+  });
+  assert.equal(result.success, false);
+  assert.match(result.error, /broad input directory/);
+});
+
 test('MDK import copies selected inputs and external headers without broad tree copies', async (t) => {
   const fixture = await createMdkFixture();
   const destination = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-selected-import-'));
@@ -65,6 +92,7 @@ test('MDK import copies selected inputs and external headers without broad tree 
   assert.equal((await findFiles(destination, 'embedded.c')).length, 1);
   assert.equal((await findFiles(destination, 'unused.c')).length, 0);
   assert.equal((await findFiles(destination, 'ext.h')).length, 1);
+  assert.equal((await findFiles(destination, 'unused.h')).length, 0);
   assert.equal((await findFiles(destination, 'unused.bin')).length, 0);
   assert.match(result.warnings.join('\n'), /scatter file.*retained/i);
   assert.match(result.warnings.join('\n'), /\.lib files were copied/i);
@@ -76,6 +104,46 @@ test('MDK import copies selected inputs and external headers without broad tree 
   const report = JSON.parse(reportText);
   assert.equal(report.sourceProjectFile, 'project.uvprojx');
   assert.equal(report.projectDirectory, '.');
+});
+
+test('MDK import preview reports exact size and external path summary before copying', async (t) => {
+  const fixture = await createMdkFixture();
+  t.after(() => Promise.all([
+    fs.rm(fixture.root, { recursive: true, force: true }),
+    fs.rm(fixture.external, { recursive: true, force: true }),
+  ]));
+  const preview = await previewMdkImport(fixture.projectFile, {
+    sourceRoot: fixture.root,
+    targetName: 'SafeTarget',
+  });
+  assert.equal(preview.success, true, preview.error);
+  assert.equal(preview.fileCount, 8);
+  assert.equal(preview.externalFileCount, 2);
+  assert.equal(preview.externalDirectoryCount, 2);
+  assert.ok(preview.totalBytes > 0);
+  const externalRoot = await fs.realpath(fixture.external);
+  assert.deepEqual(
+    new Set(preview.externalDirectories),
+    new Set([path.join(externalRoot, 'Src'), path.join(externalRoot, 'Inc')]),
+  );
+});
+
+test('MDK import defaults trust to the uvprojx directory and treats parent files as external', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-nested-mdk-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await fs.mkdir(path.join(root, 'MDK-ARM'), { recursive: true });
+  await fs.mkdir(path.join(root, 'Src'), { recursive: true });
+  await fs.mkdir(path.join(root, 'Inc'), { recursive: true });
+  await fs.writeFile(path.join(root, 'Src', 'main.c'), '#include "main.h"\n');
+  await fs.writeFile(path.join(root, 'Src', 'startup_stm32f407xx.s'), 'AREA RESET, DATA, READONLY\n');
+  await fs.writeFile(path.join(root, 'Inc', 'main.h'), '#pragma once\n');
+  const projectFile = path.join(root, 'MDK-ARM', 'nested.uvprojx');
+  await fs.writeFile(projectFile, `<Project><Targets><Target><TargetName>Nested</TargetName><uAC6>0</uAC6><TargetOption><TargetCommonOption><Device>STM32F407ZGTx</Device></TargetCommonOption><TargetArmAds><Cads><VariousControls><IncludePath>..\\Inc</IncludePath></VariousControls></Cads></TargetArmAds></TargetOption><Groups><Group><Files><File><FilePath>..\\Src\\main.c</FilePath></File><File><FilePath>..\\Src\\startup_stm32f407xx.s</FilePath></File></Files></Group></Groups></Target></Targets></Project>`);
+  const preview = await previewMdkImport(projectFile, { targetName: 'Nested' });
+  assert.equal(preview.success, true, preview.error);
+  assert.equal(preview.fileCount, 3);
+  assert.equal(preview.externalFileCount, 3);
+  assert.equal(preview.externalDirectoryCount, 2);
 });
 
 test('MDK import requires an explicit target when a project has multiple targets', async (t) => {
@@ -193,8 +261,10 @@ async function createMdkFixture(multipleTargets = false) {
   await fs.writeFile(path.join(root, 'Src', 'embedded.c'), 'static int embedded(void){return 0;}\n');
   await fs.writeFile(path.join(root, 'Src', 'unused.c'), 'int unused(void){return 0;}\n');
   await fs.writeFile(path.join(root, 'Inc', 'main.h'), '#pragma once\n');
+  await fs.writeFile(path.join(root, 'Inc', 'unused.h'), '#pragma once\n');
   await fs.writeFile(path.join(external, 'Src', 'ext.c'), '#include "ext.h"\n');
   await fs.writeFile(path.join(external, 'Inc', 'ext.h'), '#pragma once\n');
+  await fs.writeFile(path.join(external, 'Inc', 'unused.h'), '#pragma once\n');
   await fs.writeFile(path.join(external, 'Inc', 'unused.bin'), Buffer.alloc(64));
   await fs.writeFile(path.join(root, 'startup_stm32f407xx.s'), 'AREA RESET, DATA, READONLY\n');
   await fs.writeFile(path.join(root, 'startup_stm32f407xx.S'), '.syntax unified\n.global Reset_Handler\nReset_Handler: b .\n');

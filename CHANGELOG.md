@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows Keep
 - Open-source support matrix, troubleshooting, contribution, and security documentation.
 - Selective copying of source files intentionally embedded with `#include` in legacy Keil projects.
 - ARM Compiler 6 retarget compatibility for legacy `FILE __stdout` and no-semihosting `fputc` projects.
+- Pre-import file/size/external-path preview and exact include-dependency copying without recursive include-directory copies.
+- A Marketplace-compatible 256×256 PNG icon and strict empty-directory policy for both import and export.
 
 ### Changed
 

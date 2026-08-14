@@ -7,7 +7,7 @@ This page records completed checks without treating unavailable hardware as a pa
 | Check | Result | Evidence |
 | --- | --- | --- |
 | TypeScript and ESLint | Pass | Clean compile and zero lint warnings |
-| Core/conversion tests | Pass | 77 tests, including unsafe roots, broad include directories, external dependencies, non-empty destinations, per-file options, and F1/F4/G4 profiles |
+| Core/conversion tests | Pass | 80 tests, including unsafe roots/symlinks, import previews, exact dependency copies, external dependencies, non-empty destinations, per-file options, and F1/F4/G4 profiles |
 | VS Code Extension Host | Pass | Extension activation and all three contributed views registered in a real macOS Extension Host |
 | VSIX inspection | Pass | Runtime dependencies and universal macOS serial binding present; sources, tests, local metadata, and pnpm internals absent |
 | Keil AC5 project import | Pass | TFTLCD AC5 project imported to native macOS CMake and built with GNU Arm with 0 errors and 0 warnings |

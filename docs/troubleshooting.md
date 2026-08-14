@@ -17,7 +17,7 @@ Choose the actual project root, not `/`, `/Users`, or your home folder. The `.uv
 
 ## Export destination is not empty
 
-Choose an empty folder. The graphical command can continue only after a modal overwrite confirmation. Core/API callers must explicitly set the non-empty override; it is disabled by default.
+Choose a new empty folder. Import and export never overwrite existing files.
 
 ## MCU selection is requested
 

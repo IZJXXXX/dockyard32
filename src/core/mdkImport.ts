@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { parseMdkProject } from './mdk';
 import type {
   MdkImportOptions,
+  MdkImportPreview,
+  MdkImportPreviewOptions,
   MdkImportResult,
   MdkTargetInfo,
 } from '../types/mdk';
@@ -23,9 +25,7 @@ const SUPPORTED_SOURCES = new Set(['.c', '.cc', '.cpp', '.cxx', '.s', '.S']);
 const COPYABLE_HEADERS = new Set(['.h', '.hh', '.hpp', '.hxx', '.inc', '.inl']);
 const MAX_IMPORT_FILES = 30_000;
 const MAX_IMPORT_BYTES = 512 * 1024 * 1024;
-const IGNORED_COPY_DIRECTORIES = new Set([
-  '.git', '.svn', '.hg', '.stm32-workbench', 'build', 'Output',
-]);
+const MAX_PREVIEW_EXTERNAL_DIRECTORIES = 12;
 
 interface ImportModel {
   readonly name: string;
@@ -47,9 +47,27 @@ interface CopyBudget {
 
 interface ImportedInputs {
   readonly sources: string[];
+  readonly dependencies: string[];
   readonly includes: string[];
   readonly libraries: string[];
   readonly scatterFile?: string;
+}
+
+interface ImportSelection {
+  readonly sources: readonly string[];
+  readonly dependencies: readonly string[];
+  readonly includes: readonly string[];
+  readonly libraries: readonly string[];
+  readonly scatterFile?: string;
+  readonly files: readonly string[];
+  readonly totalBytes: number;
+}
+
+interface PreparedImport {
+  readonly sourceProjectFile: string;
+  readonly sourceRoot: string;
+  readonly target: MdkTargetInfo;
+  readonly selection: ImportSelection;
 }
 
 interface AbsoluteSection {
@@ -58,52 +76,55 @@ interface AbsoluteSection {
   readonly region: 'CCMRAM' | 'EXTRAM';
 }
 
+export async function previewMdkImport(
+  projectFile: string,
+  options: MdkImportPreviewOptions = {},
+): Promise<MdkImportPreview> {
+  try {
+    const prepared = await prepareMdkImport(projectFile, options);
+    const externalFiles = prepared.selection.files.filter(
+      (file) => !isInside(file, prepared.sourceRoot),
+    );
+    const externalDirectories = unique(externalFiles.map((file) => path.dirname(file)));
+    return {
+      success: true,
+      targetName: prepared.target.name,
+      device: prepared.target.device,
+      fileCount: prepared.selection.files.length,
+      totalBytes: prepared.selection.totalBytes,
+      externalFileCount: externalFiles.length,
+      externalDirectories: externalDirectories.slice(0, MAX_PREVIEW_EXTERNAL_DIRECTORIES),
+      externalDirectoryCount: externalDirectories.length,
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      fileCount: 0,
+      totalBytes: 0,
+      externalFileCount: 0,
+      externalDirectories: [],
+      externalDirectoryCount: 0,
+      error: errorMessage(error),
+    };
+  }
+}
+
 export async function importMdkProjectToCmake(
   projectFile: string,
   options: MdkImportOptions,
 ): Promise<MdkImportResult> {
   const warnings: string[] = [];
   const convertedFiles: string[] = [];
-  const sourceProjectFile = path.resolve(projectFile);
+  const requestedProjectFile = path.resolve(projectFile);
   const destination = path.resolve(options.destinationDirectory);
-  let parsed;
+  let prepared: PreparedImport;
   try {
-    parsed = await parseMdkProject(sourceProjectFile);
+    prepared = await prepareMdkImport(requestedProjectFile, options);
   } catch (error: unknown) {
-    return importFailure(sourceProjectFile, warnings, errorMessage(error));
+    return importFailure(requestedProjectFile, warnings, errorMessage(error));
   }
-  if (options.targetName === undefined && parsed.targets.length > 1) {
-    return importFailure(
-      sourceProjectFile,
-      warnings,
-      'Multiple MDK targets were found; select a target before importing',
-    );
-  }
-  const selectedTarget = options.targetName === undefined
-    ? parsed.targets[0]
-    : parsed.targets.find((candidate) => candidate.name === options.targetName);
-  if (selectedTarget === undefined) {
-    return importFailure(sourceProjectFile, warnings, 'The selected MDK target was not found');
-  }
-  let profile;
-  try {
-    profile = stm32DeviceProfile(options.device ?? selectedTarget.device);
-  } catch (error: unknown) {
-    return importFailure(
-      sourceProjectFile,
-      warnings,
-      `${errorMessage(error)}. Select the exact MCU before importing`,
-    );
-  }
-  const target: MdkTargetInfo = { ...selectedTarget, device: profile.device };
-
-  const sourceRoot = path.resolve(
-    options.sourceRoot ?? inferSourceRoot(sourceProjectFile, target),
-  );
-  const sourceError = validateProjectSourceRoot(sourceRoot, sourceProjectFile);
-  if (sourceError !== undefined) {
-    return importFailure(sourceProjectFile, warnings, sourceError);
-  }
+  const { sourceProjectFile, sourceRoot, target } = prepared;
+  const profile = stm32DeviceProfile(target.device);
   const destinationInsideSource = isInside(destination, sourceRoot);
   if (destinationInsideSource) {
     return importFailure(
@@ -117,26 +138,12 @@ export async function importMdkProjectToCmake(
     return importFailure(sourceProjectFile, warnings, destinationError);
   }
 
-  const projectDirectory = path.dirname(sourceProjectFile);
-  const resolvedSources = target.sources
-    .map((item) => resolveMdkPath(projectDirectory, item))
-    .filter((item) => SUPPORTED_SOURCES.has(path.extname(item)));
-  const resolvedIncludes = target.includePaths
-    .map((item) => resolveMdkPath(projectDirectory, item));
-  const resolvedLibraries = target.libraries
-    .map((item) => resolveMdkPath(projectDirectory, item));
-  const resolvedScatter = target.scatterFile === undefined
-    ? undefined
-    : resolveMdkPath(projectDirectory, target.scatterFile);
   let imported: ImportedInputs;
   try {
     imported = await copySelectedMdkInputs(
       sourceRoot,
       destination,
-      resolvedSources,
-      resolvedIncludes,
-      resolvedLibraries,
-      resolvedScatter,
+      prepared.selection,
     );
   } catch (error: unknown) {
     return importFailure(
@@ -198,7 +205,7 @@ export async function importMdkProjectToCmake(
     );
   }
   const absoluteSections = await adaptCopiedSources(
-    portableSources,
+    [...portableSources, ...imported.dependencies],
     destination,
     convertedFiles,
   );
@@ -271,36 +278,73 @@ export async function importMdkProjectToCmake(
   };
 }
 
-function inferSourceRoot(projectFile: string, target: MdkTargetInfo): string {
-  const projectDirectory = path.dirname(projectFile);
-  const candidates = [
-    ...target.sources,
-    ...target.includePaths,
-    ...target.libraries,
-    ...(target.scatterFile === undefined ? [] : [target.scatterFile]),
-  ]
-    .map((item) => resolveMdkPath(projectDirectory, item));
-  let common = candidates[0] ?? projectDirectory;
-  for (const candidate of candidates.slice(1)) {
-    while (!isInside(candidate, common) && common !== path.dirname(common)) {
-      common = path.dirname(common);
-    }
+async function prepareMdkImport(
+  projectFile: string,
+  options: MdkImportPreviewOptions,
+): Promise<PreparedImport> {
+  const sourceProjectFile = await fs.realpath(path.resolve(projectFile));
+  const parsed = await parseMdkProject(sourceProjectFile);
+  if (options.targetName === undefined && parsed.targets.length > 1) {
+    throw new Error('Multiple MDK targets were found; select a target before importing');
   }
-  return common;
+  const selectedTarget = options.targetName === undefined
+    ? parsed.targets[0]
+    : parsed.targets.find((candidate) => candidate.name === options.targetName);
+  if (selectedTarget === undefined) {
+    throw new Error('The selected MDK target was not found');
+  }
+  let profile;
+  try {
+    profile = stm32DeviceProfile(options.device ?? selectedTarget.device);
+  } catch (error: unknown) {
+    throw new Error(
+      `${errorMessage(error)}. Select the exact MCU before importing`,
+    );
+  }
+  const target: MdkTargetInfo = { ...selectedTarget, device: profile.device };
+  // A caller may explicitly approve a wider workspace root. Without that
+  // approval, the MDK project directory is the only trusted project root.
+  const sourceRoot = await fs.realpath(path.resolve(
+    options.sourceRoot ?? path.dirname(sourceProjectFile),
+  ));
+  const sourceError = validateProjectSourceRoot(sourceRoot, sourceProjectFile);
+  if (sourceError !== undefined) {
+    throw new Error(sourceError);
+  }
+  const projectDirectory = path.dirname(sourceProjectFile);
+  const sources = target.sources
+    .map((item) => resolveMdkPath(projectDirectory, item))
+    .filter((item) => SUPPORTED_SOURCES.has(path.extname(item)));
+  const includes = target.includePaths.map((item) =>
+    resolveMdkPath(projectDirectory, item));
+  const libraries = target.libraries.map((item) =>
+    resolveMdkPath(projectDirectory, item));
+  const scatterFile = target.scatterFile === undefined
+    ? undefined
+    : resolveMdkPath(projectDirectory, target.scatterFile);
+  const selection = await selectMdkInputs(
+    sources,
+    includes,
+    libraries,
+    scatterFile,
+  );
+  return { sourceProjectFile, sourceRoot, target, selection };
 }
 
-async function copySelectedMdkInputs(
-  sourceRoot: string,
-  destination: string,
+async function selectMdkInputs(
   sources: readonly string[],
   includes: readonly string[],
   libraries: readonly string[],
   scatterFile: string | undefined,
-): Promise<ImportedInputs> {
-  const budget: CopyBudget = { files: 0, bytes: 0 };
-  await fs.mkdir(destination, { recursive: true });
-  const includeMappings = new Map<string, string>();
-  for (const include of unique(includes.map((candidate) => path.resolve(candidate)))) {
+): Promise<ImportSelection> {
+  const selectedIncludes: string[] = [];
+  for (const includePath of unique(includes.map((candidate) => path.resolve(candidate)))) {
+    let include: string;
+    try {
+      include = await fs.realpath(includePath);
+    } catch {
+      continue;
+    }
     if (!await isDirectory(include)) {
       continue;
     }
@@ -308,78 +352,15 @@ async function copySelectedMdkInputs(
     if (scopeError !== undefined) {
       throw new Error(scopeError);
     }
-    const mapped = importedPath(sourceRoot, destination, include, true);
-    await copyHeaderTree(include, mapped, budget);
-    includeMappings.set(include, mapped);
+    selectedIncludes.push(include);
   }
-
-  const importedSources: string[] = [];
-  const sourceMappings = new Map<string, string>();
-  for (const source of unique(sources.map((candidate) => path.resolve(candidate)))) {
-    const owner = [...includeMappings.keys()]
-      .filter((include) => isInside(source, include))
-      .sort((left, right) => right.length - left.length)[0];
-    const mapped = owner === undefined
-      ? importedPath(sourceRoot, destination, source, false)
-      : path.join(includeMappings.get(owner) as string, path.relative(owner, source));
-    await copySelectedFile(source, mapped, budget);
-    importedSources.push(mapped);
-    sourceMappings.set(source, mapped);
-  }
-
-  await copyEmbeddedSourceIncludes(
-    [...sourceMappings.keys()],
-    sourceRoot,
-    destination,
-    includeMappings,
-    budget,
-  );
-
-  const importedLibraries: string[] = [];
-  for (const library of unique(libraries.map((candidate) => path.resolve(candidate)))) {
-    const mapped = path.join(
-      destination,
-      'Libraries',
-      `${shortHash(library)}-${path.basename(library)}`,
-    );
-    await copySelectedFile(library, mapped, budget);
-    importedLibraries.push(mapped);
-  }
-
-  let importedScatter: string | undefined;
-  if (scatterFile !== undefined && await isFile(scatterFile)) {
-    importedScatter = path.join(
-      destination,
-      'cmake',
-      'original',
-      path.basename(scatterFile),
-    );
-    await copySelectedFile(scatterFile, importedScatter, budget);
-  }
-  return {
-    sources: importedSources,
-    includes: [...includeMappings.values()],
-    libraries: importedLibraries,
-    scatterFile: importedScatter,
-  };
-}
-
-/**
- * Some legacy Keil projects intentionally include a .c/.cpp implementation
- * from another source file instead of compiling it as its own translation
- * unit. Copy only those explicitly referenced files; never broaden this into
- * copying every implementation file below an include directory.
- */
-async function copyEmbeddedSourceIncludes(
-  initialFiles: readonly string[],
-  sourceRoot: string,
-  destination: string,
-  includeMappings: ReadonlyMap<string, string>,
-  budget: CopyBudget,
-): Promise<void> {
-  const pending = [...initialFiles];
+  const selectedSources = unique(await Promise.all(
+    sources.map((candidate) => fs.realpath(path.resolve(candidate))),
+  ));
+  const sourceSet = new Set(selectedSources);
+  const dependencies = new Set<string>();
   const visited = new Set<string>();
-  const copied = new Set<string>();
+  const pending = [...selectedSources];
   while (pending.length > 0) {
     const current = pending.pop();
     if (current === undefined || visited.has(current)) {
@@ -392,30 +373,140 @@ async function copyEmbeddedSourceIncludes(
     } catch {
       continue;
     }
-    for (const match of content.matchAll(/^\s*#\s*include\s*"([^"]+)"/gmu)) {
+    for (const match of content.matchAll(/^\s*#\s*include\s*[<"]([^>"]+)[>"]/gmu)) {
       const requested = match[1];
-      if (requested === undefined || !SUPPORTED_SOURCES.has(path.extname(requested))) {
+      if (requested === undefined || !isImportDependency(requested)) {
         continue;
       }
       const resolved = await resolveQuotedInclude(
         requested,
         path.dirname(current),
-        [...includeMappings.keys()],
+        selectedIncludes,
       );
-      if (resolved === undefined || copied.has(resolved)) {
+      if (resolved === undefined || sourceSet.has(resolved) || dependencies.has(resolved)) {
         continue;
       }
-      const owner = [...includeMappings.keys()]
-        .filter((include) => isInside(resolved, include))
-        .sort((left, right) => right.length - left.length)[0];
-      const mapped = owner === undefined
-        ? importedPath(sourceRoot, destination, resolved, false)
-        : path.join(includeMappings.get(owner) as string, path.relative(owner, resolved));
-      await copySelectedFile(resolved, mapped, budget);
-      copied.add(resolved);
+      dependencies.add(resolved);
       pending.push(resolved);
     }
   }
+  const selectedLibraries = unique(await Promise.all(
+    libraries.map((candidate) => fs.realpath(path.resolve(candidate))),
+  ));
+  const selectedScatter = scatterFile !== undefined && await isFile(scatterFile)
+    ? await fs.realpath(path.resolve(scatterFile))
+    : undefined;
+  const files = unique([
+    ...selectedSources,
+    ...dependencies,
+    ...selectedLibraries,
+    ...(selectedScatter === undefined ? [] : [selectedScatter]),
+  ]);
+  let totalBytes = 0;
+  for (const file of files) {
+    const stat = await fs.lstat(file);
+    if (!stat.isFile() || stat.isSymbolicLink()) {
+      throw new Error(`Refusing non-regular input file: ${path.basename(file)}`);
+    }
+    totalBytes += stat.size;
+  }
+  if (files.length > MAX_IMPORT_FILES || totalBytes > MAX_IMPORT_BYTES) {
+    throw new Error('Selected Keil inputs exceed the safe import limit');
+  }
+  return {
+    sources: selectedSources,
+    dependencies: [...dependencies],
+    includes: selectedIncludes,
+    libraries: selectedLibraries,
+    scatterFile: selectedScatter,
+    files,
+    totalBytes,
+  };
+}
+
+function isImportDependency(candidate: string): boolean {
+  const extension = path.extname(candidate);
+  return COPYABLE_HEADERS.has(extension.toLowerCase()) ||
+    SUPPORTED_SOURCES.has(extension) ||
+    SUPPORTED_SOURCES.has(extension.toLowerCase());
+}
+
+async function copySelectedMdkInputs(
+  sourceRoot: string,
+  destination: string,
+  selection: ImportSelection,
+): Promise<ImportedInputs> {
+  const budget: CopyBudget = { files: 0, bytes: 0 };
+  await fs.mkdir(destination, { recursive: true });
+  const includeMappings = new Map<string, string>();
+  for (const include of selection.includes) {
+    const mapped = importedPath(sourceRoot, destination, include, true);
+    await fs.mkdir(mapped, { recursive: true });
+    includeMappings.set(include, mapped);
+  }
+
+  const mappingRoots = new Map<string, string>([
+    [sourceRoot, destination],
+    ...includeMappings,
+  ]);
+  for (const file of [...selection.sources, ...selection.dependencies]) {
+    if (![...mappingRoots.keys()].some((root) => isInside(file, root))) {
+      const directory = path.dirname(file);
+      mappingRoots.set(
+        directory,
+        importedPath(sourceRoot, destination, directory, true),
+      );
+    }
+  }
+  const mapInput = (file: string): string => {
+    const owner = [...mappingRoots.keys()]
+      .filter((root) => isInside(file, root))
+      .sort((left, right) => right.length - left.length)[0];
+    return owner === undefined
+      ? importedPath(sourceRoot, destination, file, false)
+      : path.join(mappingRoots.get(owner) as string, path.relative(owner, file));
+  };
+  const importedSources: string[] = [];
+  for (const source of selection.sources) {
+    const mapped = mapInput(source);
+    await copySelectedFile(source, mapped, budget);
+    importedSources.push(mapped);
+  }
+  const importedDependencies: string[] = [];
+  for (const dependency of selection.dependencies) {
+    const mapped = mapInput(dependency);
+    await copySelectedFile(dependency, mapped, budget);
+    importedDependencies.push(mapped);
+  }
+
+  const importedLibraries: string[] = [];
+  for (const library of selection.libraries) {
+    const mapped = path.join(
+      destination,
+      'Libraries',
+      `${shortHash(library)}-${path.basename(library)}`,
+    );
+    await copySelectedFile(library, mapped, budget);
+    importedLibraries.push(mapped);
+  }
+
+  let importedScatter: string | undefined;
+  if (selection.scatterFile !== undefined) {
+    importedScatter = path.join(
+      destination,
+      'cmake',
+      'original',
+      path.basename(selection.scatterFile),
+    );
+    await copySelectedFile(selection.scatterFile, importedScatter, budget);
+  }
+  return {
+    sources: importedSources,
+    dependencies: importedDependencies,
+    includes: [...includeMappings.values()],
+    libraries: importedLibraries,
+    scatterFile: importedScatter,
+  };
 }
 
 async function resolveQuotedInclude(
@@ -426,40 +517,10 @@ async function resolveQuotedInclude(
   for (const base of [sourceDirectory, ...includeDirectories]) {
     const candidate = path.resolve(base, requested.replaceAll('\\', path.sep));
     if (await isFile(candidate)) {
-      return candidate;
+      return fs.realpath(candidate);
     }
   }
   return undefined;
-}
-
-async function copyHeaderTree(
-  source: string,
-  destination: string,
-  budget: CopyBudget,
-): Promise<void> {
-  await fs.mkdir(destination, { recursive: true });
-  const pending: Array<{ readonly source: string; readonly destination: string }> = [{ source, destination }];
-  while (pending.length > 0) {
-    const current = pending.pop();
-    if (current === undefined) {
-      continue;
-    }
-    const entries = await fs.readdir(current.source, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isSymbolicLink() || entry.name === '.DS_Store' || entry.name.startsWith('._')) {
-        continue;
-      }
-      const candidate = path.join(current.source, entry.name);
-      const mapped = path.join(current.destination, entry.name);
-      if (entry.isDirectory()) {
-        if (!IGNORED_COPY_DIRECTORIES.has(entry.name)) {
-          pending.push({ source: candidate, destination: mapped });
-        }
-      } else if (entry.isFile() && COPYABLE_HEADERS.has(path.extname(entry.name).toLowerCase())) {
-        await copySelectedFile(candidate, mapped, budget);
-      }
-    }
-  }
 }
 
 async function copySelectedFile(

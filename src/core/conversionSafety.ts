@@ -4,11 +4,10 @@ import * as path from 'node:path';
 
 export async function validateConversionDestination(
   destination: string,
-  allowNonEmpty = false,
 ): Promise<string | undefined> {
   try {
     const entries = await fs.readdir(destination);
-    return entries.length === 0 || allowNonEmpty
+    return entries.length === 0
       ? undefined
       : 'The conversion destination is not empty';
   } catch (error: unknown) {

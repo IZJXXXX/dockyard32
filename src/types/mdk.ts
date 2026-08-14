@@ -37,7 +37,6 @@ export interface MdkExportResult {
 export interface MdkExportOptions {
   readonly destinationDirectory?: string;
   readonly device?: string;
-  readonly allowNonEmptyDestination?: boolean;
 }
 
 export interface MdkImportOptions {
@@ -45,6 +44,24 @@ export interface MdkImportOptions {
   readonly sourceRoot?: string;
   readonly targetName?: string;
   readonly device?: string;
+}
+
+export interface MdkImportPreviewOptions {
+  readonly sourceRoot?: string;
+  readonly targetName?: string;
+  readonly device?: string;
+}
+
+export interface MdkImportPreview {
+  readonly success: boolean;
+  readonly targetName?: string;
+  readonly device?: string;
+  readonly fileCount: number;
+  readonly totalBytes: number;
+  readonly externalFileCount: number;
+  readonly externalDirectories: readonly string[];
+  readonly externalDirectoryCount: number;
+  readonly error?: string;
 }
 
 export interface MdkImportResult {

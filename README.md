@@ -42,6 +42,14 @@ STM32CubeCLT or the tool bundles installed by STM32Cube for Visual Studio Code c
 
 No terminal is required for normal Build, Flash, Reset, serial, import, or export use.
 
+### 60-second quick start
+
+1. Install the VSIX and reload VS Code.
+2. Open the folder containing the STM32 `.ioc`, `CMakeLists.txt`, or Keil `.uvprojx` file.
+3. Open **STM32 Workbench** in the Activity Bar and wait for tool/device detection.
+4. Select **Build Project**, then use **Flash Firmware** or **Build & Run**.
+5. Open **STM32 Serial**, choose a `/dev/cu.*` port and baud rate, and select **Connect**.
+
 ### Build from source
 
 ```text
@@ -73,9 +81,10 @@ See the detailed [support matrix](docs/support-matrix.md).
 ## Keil conversion safety
 
 - Import rejects filesystem roots, the user home directory, and parent directories broad enough to contain the home directory.
-- Import copies selected Target sources, required header trees, custom scatter references, and explicitly referenced libraries instead of copying the entire source root.
+- Import trusts only the `.uvprojx` directory by default (or an explicitly approved open workspace), copies selected Target sources and recursively resolved `#include` dependencies, and maps external files individually into `External/`.
+- Before import, the graphical flow shows selected file count, total size, external file count, and an external-directory summary.
 - Export copies compile-command sources, recursively resolved `#include` dependencies, and detected precompiled libraries instead of complete include directories.
-- Non-empty destinations are rejected by Core. The graphical exporter requires a modal confirmation before it allows generated files to be replaced.
+- Import and export both require empty destination directories. Existing files are never overwritten.
 - Conversion reports use relative or redacted external paths and do not record the local username or absolute home path.
 - Multiple Keil Targets and unknown MCUs require an explicit graphical selection.
 
