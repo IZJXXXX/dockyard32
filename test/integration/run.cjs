@@ -7,8 +7,14 @@ async function main() {
   const extensionTestsPath = path.resolve(__dirname, 'extension.test.cjs');
   const workspace = path.resolve(__dirname, '..', 'fixtures', 'extension-workspace');
   const localMacExecutable = '/Applications/Visual Studio Code.app/Contents/MacOS/Code';
+  const requestedVersion = process.env.VSCODE_TEST_VERSION;
+  const downloadTimeout = Number(process.env.VSCODE_DOWNLOAD_TIMEOUT_MS ?? '120000');
+  if (!Number.isFinite(downloadTimeout) || downloadTimeout <= 0) {
+    throw new Error('VSCODE_DOWNLOAD_TIMEOUT_MS must be a positive number');
+  }
   const vscodeExecutablePath = process.env.VSCODE_EXECUTABLE_PATH ??
-    (process.platform === 'darwin' && process.env.CI !== 'true' && fs.existsSync(localMacExecutable)
+    (requestedVersion === undefined && process.platform === 'darwin' &&
+      process.env.CI !== 'true' && fs.existsSync(localMacExecutable)
       ? localMacExecutable
       : undefined);
   await runTests({
@@ -23,6 +29,9 @@ async function main() {
     ],
     ...(vscodeExecutablePath
       ? { vscodeExecutablePath }
+      : {}),
+    ...(requestedVersion
+      ? { version: requestedVersion, timeout: downloadTimeout }
       : {}),
   });
 }

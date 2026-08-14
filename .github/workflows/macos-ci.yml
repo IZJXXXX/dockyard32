@@ -34,6 +34,11 @@ jobs:
       - name: Run VS Code Extension Host integration test
         run: pnpm run test:integration
 
+      - name: Run minimum VS Code 1.96 integration test
+        run: pnpm run test:integration
+        env:
+          VSCODE_TEST_VERSION: 1.96.0
+
       - name: Package VSIX
         run: pnpm run package:vsix
 
@@ -43,6 +48,6 @@ jobs:
       - name: Upload VSIX
         uses: actions/upload-artifact@v7
         with:
-          name: stm32-workbench-vsix
-          path: stm32-workbench-*.vsix
+          name: stm32-workbench-darwin-arm64-vsix
+          path: stm32-workbench-*-darwin-arm64.vsix
           if-no-files-found: error

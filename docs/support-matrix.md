@@ -4,8 +4,8 @@
 
 | Area | Supported | Notes |
 | --- | --- | --- |
-| macOS Apple Silicon | Yes | Primary development and packaging target |
-| macOS Intel | Expected | Serial binding is universal; CI/hardware coverage is limited |
+| macOS Apple Silicon | Yes | Only published target: `darwin-arm64` |
+| macOS Intel | No package | The serial binary is universal, but no `darwin-x64` VSIX is published |
 | Windows extension host | Not currently targeted | Windows is used for Keil export validation |
 | Linux extension host | Not currently targeted | Core CMake logic is portable but unverified |
 | STM32CubeCLT | Yes | Automatically discovered in common locations |

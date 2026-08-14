@@ -10,7 +10,7 @@ import type { AgentApi } from '../types/agent';
 import { registerStm32Tools } from './tools';
 
 const SERVER_NAME = 'stm32-workbench';
-const SERVER_VERSION = '0.1.0';
+const SERVER_VERSION = '0.1.1';
 
 export function createStm32McpServer(api: AgentApi): McpServer {
   const server = new McpServer(

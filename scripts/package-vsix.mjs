@@ -1,4 +1,13 @@
-import { cp, mkdtemp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import {
+  cp,
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -9,11 +18,48 @@ const projectDirectory = resolve(scriptDirectory, "..");
 const packageJson = JSON.parse(
   await readFile(join(projectDirectory, "package.json"), "utf8"),
 );
+const supportedTarget = "darwin-arm64";
+const commandLine = parseArguments(process.argv.slice(2));
+if (commandLine.target !== supportedTarget) {
+  throw new Error(
+    `Unsupported VSIX target '${commandLine.target}'. STM32 Workbench currently publishes only ${supportedTarget}.`,
+  );
+}
 const outputPath = resolve(
   projectDirectory,
-  process.argv[2] ?? `stm32-workbench-${packageJson.version}.vsix`,
+  commandLine.output ??
+    `stm32-workbench-${packageJson.version}-${commandLine.target}.vsix`,
 );
 const stageDirectory = await mkdtemp(join(tmpdir(), "stm32-workbench-vsix-"));
+
+function parseArguments(args) {
+  let target = supportedTarget;
+  let output;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === "--target") {
+      target = args[index + 1];
+      index += 1;
+    } else if (argument === "--out") {
+      output = args[index + 1];
+      index += 1;
+    } else if (argument.startsWith("--")) {
+      throw new Error(`Unknown argument: ${argument}`);
+    } else if (output === undefined) {
+      // Preserve the original positional output-path interface.
+      output = argument;
+    } else {
+      throw new Error(`Unexpected argument: ${argument}`);
+    }
+  }
+  if (typeof target !== "string" || target.length === 0) {
+    throw new Error("--target requires a value");
+  }
+  if (args.includes("--out") && (typeof output !== "string" || output.length === 0)) {
+    throw new Error("--out requires a value");
+  }
+  return { target, output };
+}
 
 function run(command, args, cwd) {
   return new Promise((resolvePromise, rejectPromise) => {
@@ -84,6 +130,30 @@ try {
       }),
     ),
   );
+  const bindingsDirectory = join(
+    stageDirectory,
+    "node_modules",
+    "@serialport",
+    "bindings-cpp",
+  );
+  const prebuildsDirectory = join(bindingsDirectory, "prebuilds");
+  const prebuildDirectories = await readdir(prebuildsDirectory);
+  await Promise.all(
+    prebuildDirectories
+      .filter((name) => name !== "darwin-x64+arm64")
+      .map((name) => rm(join(prebuildsDirectory, name), {
+        recursive: true,
+        force: true,
+      })),
+  );
+  await Promise.all(
+    ["build", "src", "binding.gyp", join("node_modules", ".bin")].map(
+      (name) => rm(join(bindingsDirectory, name), {
+        recursive: true,
+        force: true,
+      }),
+    ),
+  );
   await mkdir(dirname(outputPath), { recursive: true });
   await rm(outputPath, { force: true });
 
@@ -93,6 +163,9 @@ try {
       join(projectDirectory, "node_modules", "@vscode", "vsce", "vsce"),
       "package",
       "--no-dependencies",
+      "--target",
+      commandLine.target,
+      "--ignore-other-target-folders",
       "--out",
       outputPath,
     ],

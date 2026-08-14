@@ -2,7 +2,7 @@
   "name": "stm32-workbench",
   "displayName": "STM32 Workbench",
   "description": "A lightweight, graphical STM32 workflow for Visual Studio Code.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "izjxxxx",
   "icon": "media/stm32-workbench.png",
   "license": "MIT",
