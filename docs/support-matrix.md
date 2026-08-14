@@ -38,6 +38,6 @@ The current Windows regression uses Keil MDK 5.42 with ARM Compiler 6.23 and pro
 
 ## Conversion equivalence
 
-STM32 Workbench preserves the information it can model: selected Target, device, sources, include paths, defines, common and per-file compile controls, memory regions, entry point, stack/heap sizes, detected custom sections, startup choice, and library references.
+Dockyard32 preserves the information it can model: selected Target, device, sources, include paths, defines, common and per-file compile controls, memory regions, entry point, stack/heap sizes, detected custom sections, startup choice, and library references.
 
 It does not promise bit-identical output, cycle-identical code, or identical memory layout across GCC and ARMClang. Production users must compare map files, vector/entry addresses, bootloader offsets, memory-region utilization, and hardware behavior.

@@ -20,7 +20,7 @@ export const sendSerialInputSchema = z
       .string()
       .min(1)
       .max(65_536)
-      .describe('Text to send through the currently connected Workbench serial port.'),
+      .describe('Text to send through the currently connected Dockyard32 serial port.'),
     lineEnding: z
       .enum(['none', 'lf', 'cr', 'crlf'])
       .optional()

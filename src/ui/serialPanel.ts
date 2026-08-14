@@ -68,7 +68,7 @@ export class SerialPanelProvider
   }
 
   public show(): void {
-    void vscode.commands.executeCommand('stm32Workbench.serialView.focus');
+    void vscode.commands.executeCommand('dockyard32.serialView.focus');
   }
 
   public updateSnapshot(snapshot: SerialPanelSnapshot): void {

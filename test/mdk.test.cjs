@@ -34,7 +34,7 @@ test('detectProject recognizes a native MDK project and parses its target', asyn
   assert.equal(info.buildSystem, 'mdk');
   assert.equal(info.mcu, 'STM32F407ZGT');
   assert.equal(info.mdk.projectFile, projectFile);
-  assert.equal(info.buildDir, path.join(root, '.stm32-workbench', 'mdk-output'));
+  assert.equal(info.buildDir, path.join(root, '.dockyard32', 'mdk-output'));
 });
 
 test('parseMdkProject distinguishes ARM Compiler 5 and ARM Compiler 6 targets', async (t) => {
@@ -110,7 +110,7 @@ test('exportCmakeProjectToMdk emits uvprojx, scatter file, and metadata', async 
   assert.match(scatter, /LR_IROM1 0x08000000 0x00100000/);
   assert.match(scatter, /ARM_LIB_HEAP\s+\+0 EMPTY 0x00000200/);
   assert.match(scatter, /ARM_LIB_STACK 0x20020000 EMPTY -0x00000900/);
-  const report = JSON.parse(await fs.readFile(path.join(exportDirectory, 'stm32-workbench-export.json'), 'utf8'));
+  const report = JSON.parse(await fs.readFile(path.join(exportDirectory, 'dockyard32-export.json'), 'utf8'));
   assert.equal(report.linkerScript, 'cmake/generated/F407_Test.ld');
   assert.equal(report.entry, 'Reset_Handler');
   assert.deepEqual(report.memoryRegions.map((region) => region.name), ['RAM', 'CCMRAM', 'FLASH']);
@@ -151,8 +151,16 @@ test('importMdkProjectToCmake creates an independent native macOS project', asyn
   assert.match(cmake, /arm-none-eabi-gcc/);
   assert.match(cmake, /startup_stm32f407xx\.S/);
   assert.equal(await fs.readFile(path.join(root, 'Src', 'main.c'), 'utf8'), 'int main(void) { for (;;) {} }\n');
-  const report = JSON.parse(await fs.readFile(path.join(destination, '.stm32-workbench', 'mdk-import.json'), 'utf8'));
+  const report = JSON.parse(await fs.readFile(path.join(destination, '.dockyard32', 'mdk-import.json'), 'utf8'));
   assert.equal(report.sourceCompiler, 'armcc5');
+
+  await fs.rename(
+    path.join(destination, '.dockyard32'),
+    path.join(destination, '.stm32-workbench'),
+  );
+  const legacyProject = await detectProject(destination);
+  assert.equal(legacyProject.mcu, 'STM32F407ZGT');
+  assert.equal(legacyProject.mcuDetection, 'exact');
 });
 
 test('importMdkProjectToCmake imports an ARM Compiler 6 project', async (t) => {
@@ -177,7 +185,7 @@ test('importMdkProjectToCmake imports an ARM Compiler 6 project', async (t) => {
   </Target></Targets></Project>`);
   const result = await importMdkProjectToCmake(projectFile, { destinationDirectory: destination, sourceRoot: root });
   assert.equal(result.success, true);
-  const report = JSON.parse(await fs.readFile(path.join(destination, '.stm32-workbench', 'mdk-import.json'), 'utf8'));
+  const report = JSON.parse(await fs.readFile(path.join(destination, '.dockyard32', 'mdk-import.json'), 'utf8'));
   assert.equal(report.sourceCompiler, 'armclang6');
   assert.equal(report.warnings.some((warning) => warning.includes('ARM Compiler 5')), false);
 });

@@ -9,7 +9,7 @@ import {
   SerialPanelProvider,
   type SerialPanelConfiguration,
 } from './serialPanel';
-import { WorkbenchSidebarProvider } from './sidebar';
+import { Dockyard32SidebarProvider } from './sidebar';
 
 const DEFAULT_CONFIGURATION: SerialPanelConfiguration = {
   serialPort: 'auto',
@@ -27,7 +27,7 @@ export class SerialController implements vscode.Disposable {
   private configuration = DEFAULT_CONFIGURATION;
 
   public constructor(
-    private readonly sidebar: WorkbenchSidebarProvider,
+    private readonly sidebar: Dockyard32SidebarProvider,
     private readonly service: SerialService = new SerialService(),
   ) {
     this.panel = new SerialPanelProvider({
@@ -51,12 +51,12 @@ export class SerialController implements vscode.Disposable {
     );
     this.disposables.push(
       vscode.window.registerWebviewViewProvider(
-        'stm32Workbench.serialView',
+        'dockyard32.serialView',
         this.panel,
         { webviewOptions: { retainContextWhenHidden: true } },
       ),
       vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration('stm32Workbench.serial')) {
+        if (event.affectsConfiguration('dockyard32.serial')) {
           this.configuration = readSerialConfiguration();
           this.sendSnapshot();
         }
@@ -133,7 +133,7 @@ export class SerialController implements vscode.Disposable {
     configuration: SerialPanelConfiguration,
   ): Promise<void> {
     this.configuration = configuration;
-    const settings = vscode.workspace.getConfiguration('stm32Workbench.serial');
+    const settings = vscode.workspace.getConfiguration('dockyard32.serial');
     const target = vscode.ConfigurationTarget.Workspace;
     await Promise.all([
       settings.update('port', configuration.serialPort, target),
@@ -155,7 +155,7 @@ export class SerialController implements vscode.Disposable {
 }
 
 export function readSerialConfiguration(): SerialPanelConfiguration {
-  const settings = vscode.workspace.getConfiguration('stm32Workbench.serial');
+  const settings = vscode.workspace.getConfiguration('dockyard32.serial');
   return {
     serialPort: settings.get<string>('port', DEFAULT_CONFIGURATION.serialPort),
     baudRate: settings.get<number>('baudRate', DEFAULT_CONFIGURATION.baudRate),

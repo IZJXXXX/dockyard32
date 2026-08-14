@@ -22,15 +22,15 @@ const supportedTarget = "darwin-arm64";
 const commandLine = parseArguments(process.argv.slice(2));
 if (commandLine.target !== supportedTarget) {
   throw new Error(
-    `Unsupported VSIX target '${commandLine.target}'. STM32 Workbench currently publishes only ${supportedTarget}.`,
+    `Unsupported VSIX target '${commandLine.target}'. Dockyard32 currently publishes only ${supportedTarget}.`,
   );
 }
 const outputPath = resolve(
   projectDirectory,
   commandLine.output ??
-    `stm32-workbench-${packageJson.version}-${commandLine.target}.vsix`,
+    `dockyard32-${packageJson.version}-${commandLine.target}.vsix`,
 );
-const stageDirectory = await mkdtemp(join(tmpdir(), "stm32-workbench-vsix-"));
+const stageDirectory = await mkdtemp(join(tmpdir(), "dockyard32-vsix-"));
 
 function parseArguments(args) {
   let target = supportedTarget;

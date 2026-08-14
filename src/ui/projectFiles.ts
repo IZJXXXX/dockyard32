@@ -55,11 +55,11 @@ export class ProjectFilesProvider
     item.tooltip = element.uri.fsPath;
     item.iconPath = directory ? new vscode.ThemeIcon('folder') : undefined;
     item.contextValue = directory
-      ? 'stm32Workbench.projectDirectory'
-      : 'stm32Workbench.projectFile';
+      ? 'dockyard32.projectDirectory'
+      : 'dockyard32.projectFile';
     if (!directory) {
       item.command = {
-        command: 'stm32Workbench.openProjectFile',
+        command: 'dockyard32.openProjectFile',
         title: 'Open File in Editor',
         arguments: [element.uri],
       };
@@ -108,7 +108,7 @@ export class ProjectFilesProvider
 export async function openProjectFile(uri: vscode.Uri): Promise<void> {
   if (!isWorkspaceFile(uri)) {
     await vscode.window.showErrorMessage(
-      'STM32 Workbench: The selected file is outside the current workspace.',
+      'Dockyard32: The selected file is outside the current workspace.',
     );
     return;
   }

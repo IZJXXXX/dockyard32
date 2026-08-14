@@ -51,6 +51,6 @@ jobs:
       - name: Upload VSIX
         uses: actions/upload-artifact@v7
         with:
-          name: stm32-workbench-darwin-arm64-vsix
-          path: stm32-workbench-*-darwin-arm64.vsix
+          name: dockyard32-darwin-arm64-vsix
+          path: dockyard32-*-darwin-arm64.vsix
           if-no-files-found: error

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Workbench views say no provider is registered
+## Dockyard32 views say no provider is registered
 
 1. Install the newest VSIX.
 2. Run **Developer: Reload Window** from the Command Palette.
@@ -9,7 +9,7 @@
 
 ## CMake, Ninja, GNU Arm, or Programmer is not found
 
-Install STM32CubeCLT, STM32CubeProgrammer, or the STM32Cube VS Code tool bundles. Then use **Settings → STM32 Workbench → Tools** to select an executable if automatic discovery cannot find it.
+Install STM32CubeCLT, STM32CubeProgrammer, or the STM32Cube VS Code tool bundles. Then use **Settings → Dockyard32 → Tools** to select an executable if automatic discovery cannot find it.
 
 ## Keil import is rejected as unsafe
 
@@ -25,12 +25,12 @@ Enter the exact supported F1, F4, or G4 part, for example `STM32F103C8T6`, `STM3
 
 ## Keil build warns or links differently
 
-Read `stm32-workbench-export.json`, inspect per-file options, and compare GNU and Keil map files. Pay special attention to startup, scatter regions, stack/heap, floating-point ABI, precompiled libraries, custom sections, and Bootloader offsets.
+Read `dockyard32-export.json`, inspect per-file options, and compare GNU and Keil map files. Pay special attention to startup, scatter regions, stack/heap, floating-point ABI, precompiled libraries, custom sections, and Bootloader offsets.
 
 ## ST-LINK is not detected
 
 - Disconnect ST-LINK from virtual machines and other programmer applications.
-- Reconnect the USB device and refresh Workbench status.
+- Reconnect the USB device and refresh Dockyard32 status.
 - Confirm STM32CubeProgrammer CLI can enumerate the probe.
 - Only one connected probe is accepted by automatic programming.
 

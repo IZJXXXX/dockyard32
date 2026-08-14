@@ -170,7 +170,7 @@ export async function detectProject(
     mcuSource: parsedIoc.mcu ? 'ioc' : inferred?.source,
     buildSystem: cmakeFile ? 'cmake' : primaryMdk ? 'mdk' : 'unknown',
     buildDir: cmakeBuild?.buildDir ?? (primaryMdk
-      ? path.join(actualProjectRoot, '.stm32-workbench', 'mdk-output')
+      ? path.join(actualProjectRoot, '.dockyard32', 'mdk-output')
       : undefined),
     configurePreset: cmakeBuild?.configurePreset,
     buildPreset: cmakeBuild?.buildPreset,
@@ -188,14 +188,17 @@ export async function detectProject(
 async function readMdkImportMetadata(
   projectRoot: string,
 ): Promise<Record<string, unknown> | undefined> {
-  try {
-    return JSON.parse(await fs.readFile(
-      path.join(projectRoot, '.stm32-workbench', 'mdk-import.json'),
-      'utf8',
-    )) as Record<string, unknown>;
-  } catch {
-    return undefined;
+  for (const metadataDirectory of ['.dockyard32', '.stm32-workbench']) {
+    try {
+      return JSON.parse(await fs.readFile(
+        path.join(projectRoot, metadataDirectory, 'mdk-import.json'),
+        'utf8',
+      )) as Record<string, unknown>;
+    } catch {
+      // Try the current or legacy metadata directory.
+    }
   }
+  return undefined;
 }
 
 function preferredMdkProject(files: readonly ScannedFile[]): ScannedFile | undefined {

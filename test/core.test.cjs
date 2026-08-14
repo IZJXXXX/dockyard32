@@ -12,7 +12,7 @@ const {
 const { detectProject, parseIocFile } = require('../out/core/project.js');
 
 async function createFixture(options = {}) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-workbench-'));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dockyard32-'));
   await fs.mkdir(path.join(root, 'Core', 'Src'), { recursive: true });
   await fs.mkdir(path.join(root, 'Drivers'), { recursive: true });
   await fs.writeFile(path.join(root, 'Core', 'Src', 'main.c'), 'int main(void) { return 0; }\n');
@@ -154,7 +154,7 @@ test('buildProject handles a missing CMake executable', async (t) => {
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const info = await detectProject(root);
   const result = await buildProject(info, {
-    cmakeExecutable: 'stm32-workbench-cmake-does-not-exist',
+    cmakeExecutable: 'dockyard32-cmake-does-not-exist',
     forceConfigure: true,
   });
 

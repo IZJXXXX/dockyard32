@@ -19,9 +19,9 @@ import type { DevelopmentTools, ToolKind } from '../types/tools';
 import type { OperationLease, OperationLock } from '../types/run';
 import type { RunProgress, RunResult } from '../types/run';
 import type {
-  WorkbenchProgressOperation,
-  WorkbenchProgressReporter,
-  WorkbenchProgressStatus,
+  Dockyard32ProgressOperation,
+  Dockyard32ProgressReporter,
+  Dockyard32ProgressStatus,
 } from '../types/progress';
 import { publishBuildDiagnostics } from './diagnostics';
 import {
@@ -30,12 +30,12 @@ import {
   scaleProgress,
 } from './progress';
 import { readSerialConfiguration } from './serialController';
-import { WorkbenchSidebarProvider } from './sidebar';
+import { Dockyard32SidebarProvider } from './sidebar';
 
-export class WorkbenchController implements vscode.Disposable {
-  private readonly output = vscode.window.createOutputChannel('STM32 Workbench');
+export class Dockyard32Controller implements vscode.Disposable {
+  private readonly output = vscode.window.createOutputChannel('Dockyard32');
   private readonly diagnostics =
-    vscode.languages.createDiagnosticCollection('stm32-workbench');
+    vscode.languages.createDiagnosticCollection('dockyard32');
   private readonly disposables: vscode.Disposable[] = [];
   private refreshTimer?: ReturnType<typeof setTimeout>;
   private tools?: DevelopmentTools;
@@ -43,11 +43,11 @@ export class WorkbenchController implements vscode.Disposable {
   private programming = false;
 
   public constructor(
-    private readonly sidebar: WorkbenchSidebarProvider,
+    private readonly sidebar: Dockyard32SidebarProvider,
     private readonly operationLock?: OperationLock,
     private readonly serialService?: SerialService,
     private readonly appendRunMarker?: (runId: number, timestamp: number) => void,
-    private readonly reportProgress?: WorkbenchProgressReporter,
+    private readonly reportProgress?: Dockyard32ProgressReporter,
   ) {
     const watcher = vscode.workspace.createFileSystemWatcher(
       '**/{*.ioc,CMakeLists.txt,*.ld,startup_stm32*.s,startup_stm32*.S,startup_stm32*.asm}',
@@ -61,7 +61,7 @@ export class WorkbenchController implements vscode.Disposable {
         this.scheduleDetection();
       }),
       vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration('stm32Workbench.tools')) {
+        if (event.affectsConfiguration('dockyard32.tools')) {
           void this.refreshHardware();
         }
       }),
@@ -106,8 +106,8 @@ export class WorkbenchController implements vscode.Disposable {
     if (this.operationLock !== undefined && lease === undefined) {
       void vscode.window.showInformationMessage(
         this.operationLock.getActiveOperation() === 'run'
-          ? 'STM32 Workbench: Build & Run is already in progress.'
-          : 'STM32 Workbench: Another operation is already in progress.',
+          ? 'Dockyard32: Build & Run is already in progress.'
+          : 'Dockyard32: Another operation is already in progress.',
       );
       return;
     }
@@ -126,10 +126,10 @@ export class WorkbenchController implements vscode.Disposable {
       ]);
       this.diagnostics.clear();
       const runConfiguration = vscode.workspace.getConfiguration(
-        'stm32Workbench.run',
+        'dockyard32.run',
       );
       const verify = vscode.workspace
-        .getConfiguration('stm32Workbench.flash')
+        .getConfiguration('dockyard32.flash')
         .get<boolean>('verify', true);
       const serialSettings = readSerialConfiguration();
       let markerAdded = false;
@@ -243,7 +243,7 @@ export class WorkbenchController implements vscode.Disposable {
       this.sidebar.setRunPreparationFailure(message);
       this.output.appendLine(`[Run] Preparation failed: ${message}`);
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: Build & Run failed — ${message}`,
+        `Dockyard32: Build & Run failed — ${message}`,
       );
       this.updateProgress('run', 'failed', 'Build & Run failed', 100, message);
     } finally {
@@ -256,7 +256,7 @@ export class WorkbenchController implements vscode.Disposable {
   public async build(): Promise<void> {
     if (this.building) {
       void vscode.window.showInformationMessage(
-        'STM32 Workbench: A build is already running.',
+        'Dockyard32: A build is already running.',
       );
       return;
     }
@@ -284,7 +284,7 @@ export class WorkbenchController implements vscode.Disposable {
       if (preflight !== undefined) {
         this.sidebar.setBuildResult(preflightFailure(preflight));
         this.output.appendLine(`[STM32] ${preflight}.`);
-        void vscode.window.showErrorMessage(`STM32 Workbench: ${preflight}`);
+        void vscode.window.showErrorMessage(`Dockyard32: ${preflight}`);
         this.updateProgress('build', 'failed', 'Build failed', 100, preflight);
         return;
       }
@@ -351,7 +351,7 @@ export class WorkbenchController implements vscode.Disposable {
       this.sidebar.setBuildResult(preflightFailure(message));
       this.output.appendLine(`[STM32] Unexpected build error: ${message}`);
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: Unexpected build error: ${message}`,
+        `Dockyard32: Unexpected build error: ${message}`,
       );
       this.updateProgress('build', 'failed', 'Build failed', 100, message);
     } finally {
@@ -383,14 +383,14 @@ export class WorkbenchController implements vscode.Disposable {
       if (preflight !== undefined) {
         this.sidebar.setProgrammerResult(flashFailure(preflight));
         this.output.appendLine(`[STM32] ${preflight}.`);
-        void vscode.window.showErrorMessage(`STM32 Workbench: ${preflight}`);
+        void vscode.window.showErrorMessage(`Dockyard32: ${preflight}`);
         this.updateProgress('flash', 'failed', 'Flash failed', 100, preflight);
         return;
       }
 
       this.sidebar.setProgrammerRunning('flash');
       const verify = vscode.workspace
-        .getConfiguration('stm32Workbench.flash')
+        .getConfiguration('dockyard32.flash')
         .get<boolean>('verify', true);
       this.updateProgress('flash', 'running', 'Flash', 28, 'Downloading firmware…');
       const result = await flashFirmware(project, {
@@ -429,7 +429,7 @@ export class WorkbenchController implements vscode.Disposable {
       this.sidebar.setProgrammerResult(flashFailure(message));
       this.output.appendLine(`[STM32] Unexpected flash error: ${message}`);
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: Unexpected flash error: ${message}`,
+        `Dockyard32: Unexpected flash error: ${message}`,
       );
       this.updateProgress('flash', 'failed', 'Flash failed', 100, message);
     } finally {
@@ -462,7 +462,7 @@ export class WorkbenchController implements vscode.Disposable {
       if (preflight !== undefined) {
         this.sidebar.setProgrammerResult(resetFailure(preflight));
         this.output.appendLine(`[STM32] ${preflight}.`);
-        void vscode.window.showErrorMessage(`STM32 Workbench: ${preflight}`);
+        void vscode.window.showErrorMessage(`Dockyard32: ${preflight}`);
         this.updateProgress('reset', 'failed', 'Reset failed', 100, preflight);
         return;
       }
@@ -489,7 +489,7 @@ export class WorkbenchController implements vscode.Disposable {
       this.sidebar.setProgrammerResult(resetFailure(message));
       this.output.appendLine(`[STM32] Unexpected reset error: ${message}`);
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: Unexpected reset error: ${message}`,
+        `Dockyard32: Unexpected reset error: ${message}`,
       );
       this.updateProgress('reset', 'failed', 'Reset failed', 100, message);
     } finally {
@@ -516,7 +516,7 @@ export class WorkbenchController implements vscode.Disposable {
   private beginProgramming(stage: 'flash' | 'reset'): boolean {
     if (this.programming) {
       void vscode.window.showInformationMessage(
-        'STM32 Workbench: A programmer operation is already running.',
+        'Dockyard32: A programmer operation is already running.',
       );
       return false;
     }
@@ -543,8 +543,8 @@ export class WorkbenchController implements vscode.Disposable {
       const active = this.operationLock.getActiveOperation();
       void vscode.window.showInformationMessage(
         active === 'run'
-          ? 'STM32 Workbench: Build & Run is already in progress.'
-          : 'STM32 Workbench: Another operation is already in progress.',
+          ? 'Dockyard32: Build & Run is already in progress.'
+          : 'Dockyard32: Another operation is already in progress.',
       );
     }
     return lease;
@@ -593,14 +593,14 @@ export class WorkbenchController implements vscode.Disposable {
     if (result.success) {
       this.output.appendLine(`\n[STM32] Build succeeded in ${duration} s.`);
       void vscode.window.showInformationMessage(
-        `STM32 Workbench: Build succeeded (${duration} s)`,
+        `Dockyard32: Build succeeded (${duration} s)`,
       );
     } else {
       this.output.appendLine(
         `\n[STM32] ${capitalize(result.stage)} failed: ${result.errors.length} errors, ${result.warnings.length} warnings.`,
       );
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: ${capitalize(result.stage)} failed — ${result.errors.length} errors, ${result.warnings.length} warnings`,
+        `Dockyard32: ${capitalize(result.stage)} failed — ${result.errors.length} errors, ${result.warnings.length} warnings`,
       );
     }
   }
@@ -611,20 +611,20 @@ export class WorkbenchController implements vscode.Disposable {
     if (result.success) {
       this.output.appendLine(`\n[STM32] ${operation} succeeded in ${duration} s.`);
       void vscode.window.showInformationMessage(
-        `STM32 Workbench: ${operation} succeeded (${duration} s)`,
+        `Dockyard32: ${operation} succeeded (${duration} s)`,
       );
     } else {
       const message = result.error ?? `${operation} failed`;
       this.output.appendLine(`\n[STM32] ${operation} failed: ${message}`);
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: ${operation} failed — ${message}`,
+        `Dockyard32: ${operation} failed — ${message}`,
       );
     }
   }
 
   private updateProgress(
-    operation: WorkbenchProgressOperation,
-    status: WorkbenchProgressStatus,
+    operation: Dockyard32ProgressOperation,
+    status: Dockyard32ProgressStatus,
     stage: string,
     percent: number,
     message: string,
@@ -692,7 +692,7 @@ export class WorkbenchController implements vscode.Disposable {
         `[Run #${result.runId}] Failed at ${result.failedStage ?? 'unknown'}: ${result.error ?? 'Unknown error'}`,
       );
       void vscode.window.showErrorMessage(
-        `STM32 Workbench: Run #${result.runId} failed — ${result.error ?? 'Unknown error'}`,
+        `Dockyard32: Run #${result.runId} failed — ${result.error ?? 'Unknown error'}`,
       );
       return;
     }
@@ -709,13 +709,13 @@ export class WorkbenchController implements vscode.Disposable {
       }
       this.output.appendLine(`[Run #${result.runId}] Complete in ${duration} s`);
       void vscode.window.showWarningMessage(
-        `STM32 Workbench: Run #${result.runId} completed with warnings (${duration} s)`,
+        `Dockyard32: Run #${result.runId} completed with warnings (${duration} s)`,
       );
       return;
     }
     this.output.appendLine(`[Run #${result.runId}] Complete in ${duration} s`);
     void vscode.window.showInformationMessage(
-      `STM32 Workbench: Run #${result.runId} complete (${duration} s)`,
+      `Dockyard32: Run #${result.runId} complete (${duration} s)`,
     );
   }
 
@@ -758,7 +758,7 @@ export class WorkbenchController implements vscode.Disposable {
 }
 
 function configuredToolPaths(): Partial<Record<ToolKind, string>> {
-  const configuration = vscode.workspace.getConfiguration('stm32Workbench.tools');
+  const configuration = vscode.workspace.getConfiguration('dockyard32.tools');
   const mappings: readonly [ToolKind, string][] = [
     ['cmake', 'cmakePath'],
     ['ninja', 'ninjaPath'],

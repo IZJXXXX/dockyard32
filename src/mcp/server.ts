@@ -9,7 +9,7 @@ import { createAgentApi } from '../agent/api';
 import type { AgentApi } from '../types/agent';
 import { registerStm32Tools } from './tools';
 
-const SERVER_NAME = 'stm32-workbench';
+const SERVER_NAME = 'dockyard32';
 const SERVER_VERSION = '0.1.1';
 
 export function createStm32McpServer(api: AgentApi): McpServer {
@@ -34,10 +34,12 @@ export async function resolveMcpWorkspace(
   if (argumentIndex >= 0 && argument === undefined) {
     throw new Error('--workspace requires an absolute directory path');
   }
-  const configured = argument ?? env.STM32_WORKBENCH_WORKSPACE;
+  const configured = argument ??
+    env.DOCKYARD32_WORKSPACE ??
+    env.STM32_WORKBENCH_WORKSPACE;
   if (configured === undefined || configured.trim().length === 0) {
     throw new Error(
-      'STM32 workspace is required. Pass --workspace <absolute-path> or set STM32_WORKBENCH_WORKSPACE.',
+      'STM32 workspace is required. Pass --workspace <absolute-path> or set DOCKYARD32_WORKSPACE.',
     );
   }
   if (!path.isAbsolute(configured)) {

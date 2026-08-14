@@ -41,7 +41,7 @@ export function registerStm32Tools(server: McpServer, api: AgentApi): void {
     {
       title: 'Get STM32 Tool Status',
       description:
-        'Discover CMake, Ninja, ARM GCC, and STM32CubeProgrammer using the Workbench Core and return structured availability and paths. This tool is read-only.',
+        'Discover CMake, Ninja, ARM GCC, and STM32CubeProgrammer using the Dockyard32 Core and return structured availability and paths. This tool is read-only.',
       inputSchema: emptyInputSchema,
       annotations: readOnlyAnnotations(),
     },
@@ -52,7 +52,7 @@ export function registerStm32Tools(server: McpServer, api: AgentApi): void {
     {
       title: 'Get ST-LINK Probe Info',
       description:
-        'Query configured ST-LINK probes through the existing Workbench Device Core. Returns an error if no probe or multiple probes are present.',
+        'Query configured ST-LINK probes through the existing Dockyard32 Device Core. Returns an error if no probe or multiple probes are present.',
       inputSchema: emptyInputSchema,
       annotations: readOnlyAnnotations(),
     },
@@ -63,7 +63,7 @@ export function registerStm32Tools(server: McpServer, api: AgentApi): void {
     {
       title: 'Get STM32 Serial Status',
       description:
-        'Return the current Workbench serial connection status. The independent stdio server never opens or steals a serial port owned by VS Code.',
+        'Return the current Dockyard32 serial connection status. The independent stdio server never opens or steals a serial port owned by VS Code.',
       inputSchema: emptyInputSchema,
       annotations: readOnlyAnnotations(),
     },
@@ -141,7 +141,7 @@ export function registerStm32Tools(server: McpServer, api: AgentApi): void {
     {
       title: 'Send STM32 Serial Text',
       description:
-        'Send bounded text through the serial connection already owned by Workbench. Cannot select or open an arbitrary device file.',
+        'Send bounded text through the serial connection already owned by Dockyard32. Cannot select or open an arbitrary device file.',
       inputSchema: sendSerialInputSchema,
       annotations: actionAnnotations(false),
     },
@@ -153,7 +153,7 @@ export function registerStm32Tools(server: McpServer, api: AgentApi): void {
     {
       title: 'Wait for STM32 Serial Text',
       description:
-        'Wait up to 60 seconds for a literal pattern on the serial connection already owned by Workbench. Does not open or reconfigure ports.',
+        'Wait up to 60 seconds for a literal pattern on the serial connection already owned by Dockyard32. Does not open or reconfigure ports.',
       inputSchema: waitSerialInputSchema,
       annotations: readOnlyAnnotations(),
     },

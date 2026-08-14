@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+### Changed
+
+- Renamed the extension, Marketplace identity, commands, settings, MCP server, project metadata, and release artifacts from STM32 Workbench to Dockyard32.
+- Added compatibility reads for existing STM32 Workbench workspace configuration and imported-project metadata.
+
 ## [0.1.1] - 2026-08-14
 
 ### Added

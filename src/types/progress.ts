@@ -1,19 +1,19 @@
-export type WorkbenchProgressOperation = 'build' | 'flash' | 'run' | 'reset';
+export type Dockyard32ProgressOperation = 'build' | 'flash' | 'run' | 'reset';
 
-export type WorkbenchProgressStatus =
+export type Dockyard32ProgressStatus =
   | 'idle'
   | 'running'
   | 'succeeded'
   | 'failed';
 
-export interface WorkbenchProgress {
-  readonly operation?: WorkbenchProgressOperation;
-  readonly status: WorkbenchProgressStatus;
+export interface Dockyard32Progress {
+  readonly operation?: Dockyard32ProgressOperation;
+  readonly status: Dockyard32ProgressStatus;
   readonly stage: string;
   readonly message: string;
   readonly percent: number;
 }
 
-export type WorkbenchProgressReporter = (
-  progress: WorkbenchProgress,
+export type Dockyard32ProgressReporter = (
+  progress: Dockyard32Progress,
 ) => void;

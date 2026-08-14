@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { promises as fs } from 'node:fs';
 
-import { WorkbenchOperationLock } from './core/operationLock';
+import { Dockyard32OperationLock } from './core/operationLock';
 import {
   importMdkProjectToCmake,
   previewMdkImport,
@@ -11,7 +11,7 @@ import { parseMdkProject } from './core/mdk';
 import { detectProject } from './core/project';
 import { normalizeStm32Device, stm32Family } from './core/stm32Device';
 import { SerialService } from './core/serial';
-import { WorkbenchController } from './ui/controller';
+import { Dockyard32Controller } from './ui/controller';
 import { ActionsViewProvider } from './ui/actionsPanel';
 import {
   openProjectFile,
@@ -19,20 +19,20 @@ import {
   ProjectFilesProvider,
 } from './ui/projectFiles';
 import { SerialController } from './ui/serialController';
-import { WorkbenchSidebarProvider } from './ui/sidebar';
+import { Dockyard32SidebarProvider } from './ui/sidebar';
 
 const promptedMdkProjects = new Set<string>();
 
 export function activate(context: vscode.ExtensionContext): void {
-  const sidebarProvider = new WorkbenchSidebarProvider();
+  const sidebarProvider = new Dockyard32SidebarProvider();
   const serialService = new SerialService();
-  const operationLock = new WorkbenchOperationLock(() =>
+  const operationLock = new Dockyard32OperationLock(() =>
     vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
   );
   const serialController = new SerialController(sidebarProvider, serialService);
   const projectFilesProvider = new ProjectFilesProvider();
   const actionsProvider = new ActionsViewProvider();
-  const controller = new WorkbenchController(
+  const controller = new Dockyard32Controller(
     sidebarProvider,
     operationLock,
     serialService,
@@ -47,56 +47,56 @@ export function activate(context: vscode.ExtensionContext): void {
     controller,
     serialController,
     vscode.window.registerTreeDataProvider(
-      'stm32Workbench.overview',
+      'dockyard32.overview',
       sidebarProvider,
     ),
     vscode.window.registerTreeDataProvider(
-      'stm32Workbench.projectFiles',
+      'dockyard32.projectFiles',
       projectFilesProvider,
     ),
     vscode.window.registerWebviewViewProvider(
-      'stm32Workbench.actions',
+      'dockyard32.actions',
       actionsProvider,
     ),
-    vscode.commands.registerCommand('stm32Workbench.refresh', () => {
+    vscode.commands.registerCommand('dockyard32.refresh', () => {
       return controller.refreshAll();
     }),
-    vscode.commands.registerCommand('stm32Workbench.refreshProjectFiles', () => {
+    vscode.commands.registerCommand('dockyard32.refreshProjectFiles', () => {
       projectFilesProvider.refresh();
     }),
-    vscode.commands.registerCommand('stm32Workbench.showProjectFiles', async () => {
+    vscode.commands.registerCommand('dockyard32.showProjectFiles', async () => {
       projectFilesProvider.refresh();
       try {
-        await vscode.commands.executeCommand('stm32Workbench.projectFiles.focus');
+        await vscode.commands.executeCommand('dockyard32.projectFiles.focus');
       } catch {
         await offerWindowReload();
       }
     }),
     vscode.commands.registerCommand(
-      'stm32Workbench.openProjectFile',
+      'dockyard32.openProjectFile',
       (uri: vscode.Uri) => openProjectFile(uri),
     ),
     vscode.commands.registerCommand(
-      'stm32Workbench.openProjectFileWithAi',
+      'dockyard32.openProjectFileWithAi',
       (node: unknown) => {
         const uri = projectFileUri(node);
         return uri === undefined ? undefined : openProjectFileWithAi(uri);
       },
     ),
-    vscode.commands.registerCommand('stm32Workbench.openAiAssistant', () => {
+    vscode.commands.registerCommand('dockyard32.openAiAssistant', () => {
       return vscode.commands.executeCommand('workbench.action.chat.open');
     }),
-    vscode.commands.registerCommand('stm32Workbench.build', async () => {
+    vscode.commands.registerCommand('dockyard32.build', async () => {
       if (await redirectMdkActionToImport(projectFilesProvider, 'Build')) {
         return;
       }
       await controller.build();
     }),
-    vscode.commands.registerCommand('stm32Workbench.importMdk', (projectFile?: vscode.Uri) =>
+    vscode.commands.registerCommand('dockyard32.importMdk', (projectFile?: vscode.Uri) =>
       importMdkWithUi(projectFilesProvider, projectFile)),
-    vscode.commands.registerCommand('stm32Workbench.exportMdk', () =>
+    vscode.commands.registerCommand('dockyard32.exportMdk', () =>
       exportMdkWithUi(projectFilesProvider)),
-    vscode.commands.registerCommand('stm32Workbench.run', async () => {
+    vscode.commands.registerCommand('dockyard32.run', async () => {
       if (await redirectMdkActionToImport(projectFilesProvider, 'Build & Run')) {
         return;
       }
@@ -108,7 +108,7 @@ export function activate(context: vscode.ExtensionContext): void {
         await controller.run();
       }
     }),
-    vscode.commands.registerCommand('stm32Workbench.flash', async () => {
+    vscode.commands.registerCommand('dockyard32.flash', async () => {
       if (await confirmAction(
         'Flash Firmware',
         'This will write and verify the current firmware artifact on the connected STM32 target.',
@@ -117,7 +117,7 @@ export function activate(context: vscode.ExtensionContext): void {
         await controller.flash();
       }
     }),
-    vscode.commands.registerCommand('stm32Workbench.reset', async () => {
+    vscode.commands.registerCommand('dockyard32.reset', async () => {
       if (await confirmAction(
         'Reset Target',
         'This will immediately reset the STM32 target connected through ST-LINK.',
@@ -126,14 +126,14 @@ export function activate(context: vscode.ExtensionContext): void {
         await controller.reset();
       }
     }),
-    vscode.commands.registerCommand('stm32Workbench.openSerial', () => {
+    vscode.commands.registerCommand('dockyard32.openSerial', () => {
       serialController.showPanel();
     }),
-    vscode.commands.registerCommand('stm32Workbench.showMcpSetup', async () => {
+    vscode.commands.registerCommand('dockyard32.showMcpSetup', async () => {
       const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (workspacePath === undefined) {
         await vscode.window.showErrorMessage(
-          'STM32 Workbench: Open an STM32 workspace before generating MCP setup.',
+          'Dockyard32: Open an STM32 workspace before generating MCP setup.',
         );
         return;
       }
@@ -146,7 +146,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const configuration = JSON.stringify(
         {
           mcpServers: {
-            'stm32-workbench': {
+            'dockyard32': {
               command: process.execPath,
               args: [serverPath, '--workspace', workspacePath],
               env: { ELECTRON_RUN_AS_NODE: '1' },
@@ -166,12 +166,12 @@ export function activate(context: vscode.ExtensionContext): void {
 
   void Promise.all([controller.initialize(), serialController.initialize()]).then(
     async () => {
-      if (!(await ensureWorkbenchViewsAvailable())) {
+      if (!(await ensureDockyard32ViewsAvailable())) {
         return;
       }
-      const introductionKey = 'stm32Workbench.projectFilesIntroduced.v1';
+      const introductionKey = 'dockyard32.projectFilesIntroduced.v1';
       if (!context.workspaceState.get<boolean>(introductionKey, false)) {
-        await vscode.commands.executeCommand('stm32Workbench.projectFiles.focus');
+        await vscode.commands.executeCommand('dockyard32.projectFiles.focus');
         await context.workspaceState.update(introductionKey, true);
       }
       await offerDetectedMdkImport();
@@ -189,7 +189,7 @@ async function confirmAction(
   confirmLabel: string,
 ): Promise<boolean> {
   const selected = await vscode.window.showWarningMessage(
-    `STM32 Workbench: ${title}?`,
+    `Dockyard32: ${title}?`,
     { modal: true, detail },
     confirmLabel,
   );
@@ -207,9 +207,9 @@ function projectFileUri(value: unknown): vscode.Uri | undefined {
   return uri instanceof vscode.Uri ? uri : undefined;
 }
 
-async function ensureWorkbenchViewsAvailable(): Promise<boolean> {
+async function ensureDockyard32ViewsAvailable(): Promise<boolean> {
   const commands = await vscode.commands.getCommands(true);
-  if (!commands.includes('stm32Workbench.projectFiles.focus')) {
+  if (!commands.includes('dockyard32.projectFiles.focus')) {
     await offerWindowReload();
     return false;
   }
@@ -219,7 +219,7 @@ async function ensureWorkbenchViewsAvailable(): Promise<boolean> {
 async function offerWindowReload(): Promise<void> {
   const reload = 'Reload Window';
   const selected = await vscode.window.showInformationMessage(
-    'STM32 Workbench views were updated. Reload this VS Code window when convenient to make them available.',
+    'Dockyard32 views were updated. Reload this VS Code window when convenient to make them available.',
     reload,
   );
   if (selected === reload) {
@@ -288,7 +288,7 @@ async function importMdkWithUi(
   const preview = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'STM32 Workbench: Inspecting Keil import inputs',
+      title: 'Dockyard32: Inspecting Keil import inputs',
     },
     () => previewMdkImport(projectFile, {
       sourceRoot,
@@ -298,7 +298,7 @@ async function importMdkWithUi(
   );
   if (!preview.success) {
     await vscode.window.showErrorMessage(
-      `STM32 Workbench: Cannot safely import this project — ${preview.error ?? 'unknown error'}`,
+      `Dockyard32: Cannot safely import this project — ${preview.error ?? 'unknown error'}`,
     );
     return;
   }
@@ -327,7 +327,7 @@ async function importMdkWithUi(
   const result = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'STM32 Workbench: Importing Keil MDK project',
+      title: 'Dockyard32: Importing Keil MDK project',
     },
     () => importMdkProjectToCmake(projectFile, {
       destinationDirectory: destination,
@@ -338,7 +338,7 @@ async function importMdkWithUi(
   );
   if (!result.success || result.projectDirectory === undefined) {
     await vscode.window.showErrorMessage(
-      `STM32 Workbench: MDK import failed — ${result.error ?? 'unknown error'}`,
+      `Dockyard32: MDK import failed — ${result.error ?? 'unknown error'}`,
     );
     return;
   }
@@ -348,7 +348,7 @@ async function importMdkWithUi(
     : ` ${result.warnings.length} compatibility warning${result.warnings.length === 1 ? '' : 's'} recorded.`;
   const openLabel = 'Open Imported Project';
   const selected = await vscode.window.showInformationMessage(
-    `STM32 Workbench: Native macOS CMake project created.${warningSuffix}`,
+    `Dockyard32: Native macOS CMake project created.${warningSuffix}`,
     openLabel,
   );
   if (selected === openLabel) {
@@ -375,7 +375,7 @@ async function redirectMdkActionToImport(
   }
   const convert = 'Choose Destination…';
   const selected = await vscode.window.showInformationMessage(
-    `STM32 Workbench: ${requestedAction} needs a native macOS CMake copy of this Keil MDK project.`,
+    `Dockyard32: ${requestedAction} needs a native macOS CMake copy of this Keil MDK project.`,
     {
       modal: true,
       detail: 'The original Keil project will not be modified. Choose an empty folder for the converted copy; then open that copy to Build or Build & Run.',
@@ -394,7 +394,7 @@ async function exportMdkWithUi(
   const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspacePath === undefined) {
     await vscode.window.showErrorMessage(
-      'STM32 Workbench: Open a CMake STM32 project before exporting MDK.',
+      'Dockyard32: Open a CMake STM32 project before exporting MDK.',
     );
     return;
   }
@@ -416,7 +416,7 @@ async function exportMdkWithUi(
   try {
     if ((await fs.readdir(destination)).length > 0) {
       await vscode.window.showErrorMessage(
-        'STM32 Workbench: Choose an empty folder for Keil export. Existing files are never overwritten.',
+        'Dockyard32: Choose an empty folder for Keil export. Existing files are never overwritten.',
       );
       return;
     }
@@ -426,7 +426,7 @@ async function exportMdkWithUi(
   const result = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
-      title: 'STM32 Workbench: Exporting Keil MDK project',
+      title: 'Dockyard32: Exporting Keil MDK project',
     },
     () => exportCmakeProjectToMdk(project, {
       destinationDirectory: destination,
@@ -435,7 +435,7 @@ async function exportMdkWithUi(
   );
   if (!result.success || result.projectFile === undefined) {
     await vscode.window.showErrorMessage(
-      `STM32 Workbench: MDK export failed — ${result.error ?? 'unknown error'}`,
+      `Dockyard32: MDK export failed — ${result.error ?? 'unknown error'}`,
     );
     return;
   }
@@ -445,7 +445,7 @@ async function exportMdkWithUi(
     ? ''
     : ` (${result.warnings.length} compatibility warning${result.warnings.length === 1 ? '' : 's'})`;
   await vscode.window.showInformationMessage(
-    `STM32 Workbench: Keil MDK project exported${suffix}`,
+    `Dockyard32: Keil MDK project exported${suffix}`,
   );
 }
 
@@ -476,7 +476,7 @@ async function chooseConversionDirectory(
   setting: 'defaultImportDirectory' | 'defaultExportDirectory',
 ): Promise<string | undefined> {
   const configured = vscode.workspace
-    .getConfiguration('stm32Workbench.mdk')
+    .getConfiguration('dockyard32.mdk')
     .get<string>(setting, '')
     .trim();
   const selected = await vscode.window.showOpenDialog({
@@ -492,7 +492,7 @@ async function chooseConversionDirectory(
 async function offerDetectedMdkImport(): Promise<void> {
   const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const enabled = vscode.workspace
-    .getConfiguration('stm32Workbench.mdk')
+    .getConfiguration('dockyard32.mdk')
     .get<boolean>('promptOnDetection', true);
   if (workspacePath === undefined || !enabled) {
     return;
@@ -509,18 +509,18 @@ async function offerDetectedMdkImport(): Promise<void> {
   const convert = 'Convert to CMake…';
   const disable = 'Don’t Ask Again';
   const selected = await vscode.window.showInformationMessage(
-    'STM32 Workbench detected a Keil MDK project. Convert a copy for native macOS build and flash?',
+    'Dockyard32 detected a Keil MDK project. Convert a copy for native macOS build and flash?',
     convert,
     'Not Now',
     disable,
   );
   if (selected === convert) {
     await vscode.commands.executeCommand(
-      'stm32Workbench.importMdk',
+      'dockyard32.importMdk',
       vscode.Uri.file(projectFile),
     );
   } else if (selected === disable) {
-    await vscode.workspace.getConfiguration('stm32Workbench.mdk').update(
+    await vscode.workspace.getConfiguration('dockyard32.mdk').update(
       'promptOnDetection',
       false,
       vscode.ConfigurationTarget.Global,

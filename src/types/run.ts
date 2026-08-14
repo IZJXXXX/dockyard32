@@ -133,14 +133,14 @@ export interface BuildAndRunOptions {
   readonly onProgrammerOutput?: (event: ProgrammerOutputEvent) => void;
 }
 
-export type WorkbenchOperation = 'run' | 'build' | 'flash' | 'reset';
+export type Dockyard32Operation = 'run' | 'build' | 'flash' | 'reset';
 
 export interface OperationLease {
-  readonly operation: WorkbenchOperation;
+  readonly operation: Dockyard32Operation;
   release(): void;
 }
 
 export interface OperationLock {
-  acquire(operation: WorkbenchOperation): OperationLease | undefined;
-  getActiveOperation(): WorkbenchOperation | undefined;
+  acquire(operation: Dockyard32Operation): OperationLease | undefined;
+  getActiveOperation(): Dockyard32Operation | undefined;
 }

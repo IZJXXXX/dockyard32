@@ -2,6 +2,16 @@
 
 This page records completed checks without treating unavailable hardware as a pass.
 
+## 2026-08-15 Dockyard32 rename checks
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Product identity | Pass | Extension ID is `izjxxxx.dockyard32`; commands, settings, views, MCP server, assets, documentation, CI artifacts, and VSIX names use Dockyard32 |
+| Legacy compatibility | Pass | Existing STM32 Workbench import metadata, workspace configuration, last-run records, and MCP workspace environment variables remain readable |
+| Core/conversion tests | Pass | 82 tests, including three legacy-name compatibility checks |
+| Extension and VSIX | Pass | Source and unpacked release VSIX both activated in a real Extension Host; 4,326 archive entries passed platform, privacy, native-module, and development-file checks |
+| Keil AC5 project import | Pass | TFTLCD experiment imported 105 selected inputs into a 121-file standalone CMake tree; GNU Arm completed all 23 build steps and generated ELF, HEX, and BIN firmware |
+
 ## 2026-08-14 release-candidate checks
 
 | Check | Result | Evidence |

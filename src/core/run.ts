@@ -8,7 +8,7 @@ import {
   flashFirmware,
   resetTarget,
 } from './flash';
-import { WorkbenchOperationLock } from './operationLock';
+import { Dockyard32OperationLock } from './operationLock';
 import type { DeviceStatus } from '../types/device';
 import type { FlashResult } from '../types/flash';
 import type {
@@ -31,7 +31,7 @@ import type {
 const DEFAULT_READY_PATTERN = 'SYSTEM READY';
 const DEFAULT_READY_TIMEOUT_MS = 5_000;
 const FILE_TIME_TOLERANCE_MS = 5_000;
-const defaultOperationLock = new WorkbenchOperationLock();
+const defaultOperationLock = new Dockyard32OperationLock();
 let nextRunId = 1;
 
 interface MutableRunState {

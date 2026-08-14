@@ -46,7 +46,7 @@ type RunState =
   | { readonly kind: 'finished'; readonly result: RunResult }
   | { readonly kind: 'preparation-failed'; readonly error: string };
 
-export class WorkbenchSidebarProvider
+export class Dockyard32SidebarProvider
   implements vscode.TreeDataProvider<SidebarNode>, vscode.Disposable
 {
   private readonly changeEmitter = new vscode.EventEmitter<
@@ -157,7 +157,7 @@ export class WorkbenchSidebarProvider
         vscode.TreeItemCollapsibleState.Expanded,
       );
       item.iconPath = new vscode.ThemeIcon(element.icon);
-      item.contextValue = 'stm32Workbench.section';
+      item.contextValue = 'dockyard32.section';
       return item;
     }
 
@@ -172,8 +172,8 @@ export class WorkbenchSidebarProvider
       : undefined;
     item.command = element.command;
     item.contextValue = element.command
-      ? 'stm32Workbench.action'
-      : 'stm32Workbench.value';
+      ? 'dockyard32.action'
+      : 'dockyard32.value';
     return item;
   }
 
@@ -226,7 +226,7 @@ export class WorkbenchSidebarProvider
         icon: 'folder-opened',
         tooltip: 'Open Project Files. This is navigation only and does not run a build or target action.',
         command: {
-          command: 'stm32Workbench.showProjectFiles',
+          command: 'dockyard32.showProjectFiles',
           title: 'Show Project Files',
         },
       },

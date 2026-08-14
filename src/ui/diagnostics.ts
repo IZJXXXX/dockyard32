@@ -37,7 +37,7 @@ export function publishBuildDiagnostics(
         ? vscode.DiagnosticSeverity.Error
         : vscode.DiagnosticSeverity.Warning,
     );
-    vscodeDiagnostic.source = 'STM32 Workbench';
+    vscodeDiagnostic.source = 'Dockyard32';
 
     const existing = byFile.get(absolutePath) ?? [];
     existing.push(vscodeDiagnostic);

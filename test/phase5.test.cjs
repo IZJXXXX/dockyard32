@@ -4,7 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
-const { WorkbenchOperationLock } = require('../out/core/operationLock.js');
+const { Dockyard32OperationLock } = require('../out/core/operationLock.js');
 const {
   buildAndRun,
   validateFirmwareArtifact,
@@ -531,7 +531,7 @@ test('Run IDs increase for consecutive runs', async () => {
 });
 
 test('duplicate Build & Run is rejected by the operation lock', async () => {
-  const lock = new WorkbenchOperationLock();
+  const lock = new Dockyard32OperationLock();
   let releaseBuild;
   const blockedBuild = new Promise((resolve) => { releaseBuild = resolve; });
   const firstRun = buildAndRun(runOptions({
@@ -552,7 +552,7 @@ test('duplicate Build & Run is rejected by the operation lock', async () => {
 });
 
 test('run lock protects independent Flash and Reset operations', () => {
-  const lock = new WorkbenchOperationLock();
+  const lock = new Dockyard32OperationLock();
   const runLease = lock.acquire('run');
   assert.ok(runLease);
   assert.equal(lock.acquire('flash'), undefined);

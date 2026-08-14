@@ -3,7 +3,8 @@ import * as path from 'node:path';
 
 import type { RunResult } from '../types/run';
 
-const LAST_RUN_FILE = '.stm32-workbench-last-run.json';
+const LAST_RUN_FILE = '.dockyard32-last-run.json';
+const LEGACY_LAST_RUN_FILE = '.stm32-workbench-last-run.json';
 
 export async function writeLastRunResult(
   workspacePath: string,
@@ -21,16 +22,21 @@ export async function writeLastRunResult(
 export async function readLastRunResult(
   workspacePath: string,
 ): Promise<RunResult | undefined> {
-  try {
-    const text = await fs.readFile(
-      path.join(workspacePath, '.vscode', LAST_RUN_FILE),
-      'utf8',
-    );
-    const value: unknown = JSON.parse(text);
-    return isRunResult(value) ? value : undefined;
-  } catch {
-    return undefined;
+  for (const fileName of [LAST_RUN_FILE, LEGACY_LAST_RUN_FILE]) {
+    try {
+      const text = await fs.readFile(
+        path.join(workspacePath, '.vscode', fileName),
+        'utf8',
+      );
+      const value: unknown = JSON.parse(text);
+      if (isRunResult(value)) {
+        return value;
+      }
+    } catch {
+      // Try the current or legacy last-run file.
+    }
   }
+  return undefined;
 }
 
 function isRunResult(value: unknown): value is RunResult {

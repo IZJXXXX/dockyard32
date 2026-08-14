@@ -1,7 +1,7 @@
 import type {
   OperationLease,
   OperationLock,
-  WorkbenchOperation,
+  Dockyard32Operation,
 } from '../types/run';
 import {
   closeSync,
@@ -17,19 +17,19 @@ import { randomUUID } from 'node:crypto';
 
 interface LockRecord {
   readonly pid: number;
-  readonly operation: WorkbenchOperation;
+  readonly operation: Dockyard32Operation;
   readonly startedAt: number;
   readonly token: string;
 }
 
-export class WorkbenchOperationLock implements OperationLock {
-  private active?: WorkbenchOperation;
+export class Dockyard32OperationLock implements OperationLock {
+  private active?: Dockyard32Operation;
 
   public constructor(
     private readonly workspacePath?: string | (() => string | undefined),
   ) {}
 
-  public acquire(operation: WorkbenchOperation): OperationLease | undefined {
+  public acquire(operation: Dockyard32Operation): OperationLease | undefined {
     if (this.active !== undefined) {
       return undefined;
     }
@@ -54,7 +54,7 @@ export class WorkbenchOperationLock implements OperationLock {
     };
   }
 
-  public getActiveOperation(): WorkbenchOperation | undefined {
+  public getActiveOperation(): Dockyard32Operation | undefined {
     if (this.active !== undefined) {
       return this.active;
     }
@@ -79,14 +79,14 @@ export class WorkbenchOperationLock implements OperationLock {
     return path.join(
       canonicalWorkspace,
       '.vscode',
-      '.stm32-workbench-operation.lock',
+      '.dockyard32-operation.lock',
     );
   }
 }
 
 function acquireFileLock(
   lockPath: string,
-  operation: WorkbenchOperation,
+  operation: Dockyard32Operation,
   token: string,
 ): boolean {
   mkdirSync(path.dirname(lockPath), { recursive: true });
@@ -128,7 +128,7 @@ function releaseFileLock(lockPath: string, token: string): void {
 
 function readActiveFileOperation(
   lockPath: string,
-): WorkbenchOperation | undefined {
+): Dockyard32Operation | undefined {
   const record = readLockRecord(lockPath);
   if (record === undefined) {
     return undefined;
@@ -162,7 +162,7 @@ function readLockRecord(lockPath: string): LockRecord | undefined {
     const record = value as Record<string, unknown>;
     if (
       typeof record.pid !== 'number' ||
-      !isWorkbenchOperation(record.operation) ||
+      !isDockyard32Operation(record.operation) ||
       typeof record.startedAt !== 'number' ||
       typeof record.token !== 'string'
     ) {
@@ -188,7 +188,7 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-function isWorkbenchOperation(value: unknown): value is WorkbenchOperation {
+function isDockyard32Operation(value: unknown): value is Dockyard32Operation {
   return ['run', 'build', 'flash', 'reset'].includes(String(value));
 }
 

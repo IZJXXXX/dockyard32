@@ -51,11 +51,31 @@ const DEFAULT_CONFIGURATION: AgentWorkspaceConfiguration = {
 export async function readAgentWorkspaceConfiguration(
   workspacePath: string,
 ): Promise<AgentWorkspaceConfiguration> {
-  const [settings, workbench] = await Promise.all([
+  const [settings, legacyConfiguration, dockyardConfiguration] = await Promise.all([
     readJsonc(path.join(workspacePath, '.vscode', 'settings.json')),
     readJsonc(path.join(workspacePath, '.vscode', 'stm32-workbench.json')),
+    readJsonc(path.join(workspacePath, '.vscode', 'dockyard32.json')),
   ]);
-  return mergeConfiguration(settings, workbench);
+  return mergeConfiguration(
+    normalizeLegacySettings(settings),
+    { ...legacyConfiguration, ...dockyardConfiguration },
+  );
+}
+
+function normalizeLegacySettings(
+  settings: Record<string, unknown>,
+): Record<string, unknown> {
+  const normalized = { ...settings };
+  for (const [key, value] of Object.entries(settings)) {
+    if (!key.startsWith('stm32Workbench.')) {
+      continue;
+    }
+    const dockyardKey = `dockyard32.${key.slice('stm32Workbench.'.length)}`;
+    if (!(dockyardKey in normalized)) {
+      normalized[dockyardKey] = value;
+    }
+  }
+  return normalized;
 }
 
 async function readJsonc(filePath: string): Promise<Record<string, unknown>> {
@@ -69,82 +89,82 @@ async function readJsonc(filePath: string): Promise<Record<string, unknown>> {
 
 function mergeConfiguration(
   settings: Record<string, unknown>,
-  workbench: Record<string, unknown>,
+  dockyardConfiguration: Record<string, unknown>,
 ): AgentWorkspaceConfiguration {
-  const toolObject = nestedRecord(workbench, 'tools');
-  const serialObject = nestedRecord(workbench, 'serial');
-  const runObject = nestedRecord(workbench, 'run');
-  const timeoutObject = nestedRecord(workbench, 'timeouts');
+  const toolObject = nestedRecord(dockyardConfiguration, 'tools');
+  const serialObject = nestedRecord(dockyardConfiguration, 'serial');
+  const runObject = nestedRecord(dockyardConfiguration, 'run');
+  const timeoutObject = nestedRecord(dockyardConfiguration, 'timeouts');
   return {
     configuredTools: compactTools({
       cmake: stringValue(
-        settings['stm32Workbench.tools.cmakePath'],
+        settings['dockyard32.tools.cmakePath'],
         toolObject.cmakePath,
       ),
       ninja: stringValue(
-        settings['stm32Workbench.tools.ninjaPath'],
+        settings['dockyard32.tools.ninjaPath'],
         toolObject.ninjaPath,
       ),
       'arm-gcc': stringValue(
-        settings['stm32Workbench.tools.armGccPath'],
+        settings['dockyard32.tools.armGccPath'],
         toolObject.armGccPath,
       ),
       programmer: stringValue(
-        settings['stm32Workbench.tools.programmerPath'],
+        settings['dockyard32.tools.programmerPath'],
         toolObject.programmerPath,
       ),
     }),
     serial: {
       serialPort: stringValue(
-        settings['stm32Workbench.serial.port'],
-        workbench.serialPort,
+        settings['dockyard32.serial.port'],
+        dockyardConfiguration.serialPort,
         serialObject.port,
       ) ?? DEFAULT_CONFIGURATION.serial.serialPort,
       baudRate: positiveInteger(
-        settings['stm32Workbench.serial.baudRate'],
-        workbench.baudRate,
+        settings['dockyard32.serial.baudRate'],
+        dockyardConfiguration.baudRate,
         serialObject.baudRate,
         DEFAULT_CONFIGURATION.serial.baudRate,
       ),
       dataBits: serialDataBits(
-        settings['stm32Workbench.serial.dataBits'] ??
-          workbench.dataBits ??
+        settings['dockyard32.serial.dataBits'] ??
+          dockyardConfiguration.dataBits ??
           serialObject.dataBits,
       ),
       stopBits: serialStopBits(
-        settings['stm32Workbench.serial.stopBits'] ??
-          workbench.stopBits ??
+        settings['dockyard32.serial.stopBits'] ??
+          dockyardConfiguration.stopBits ??
           serialObject.stopBits,
       ),
       parity: serialParity(
-        settings['stm32Workbench.serial.parity'] ??
-          workbench.parity ??
+        settings['dockyard32.serial.parity'] ??
+          dockyardConfiguration.parity ??
           serialObject.parity,
       ),
     },
     flashVerify: booleanValue(
-      settings['stm32Workbench.flash.verify'],
-      workbench.verify,
+      settings['dockyard32.flash.verify'],
+      dockyardConfiguration.verify,
       true,
     ),
     run: {
       waitForSerialReady: booleanValue(
-        settings['stm32Workbench.run.waitForSerialReady'],
+        settings['dockyard32.run.waitForSerialReady'],
         runObject.waitForSerialReady,
         false,
       ),
       readyPattern:
         stringValue(
-          settings['stm32Workbench.run.readyPattern'],
+          settings['dockyard32.run.readyPattern'],
           runObject.readyPattern,
         ) ?? DEFAULT_CONFIGURATION.run.readyPattern,
       readyTimeoutMs: positiveInteger(
-        settings['stm32Workbench.run.readyTimeoutMs'],
+        settings['dockyard32.run.readyTimeoutMs'],
         runObject.readyTimeoutMs,
         DEFAULT_CONFIGURATION.run.readyTimeoutMs,
       ),
       clearSerialBeforeRun: booleanValue(
-        settings['stm32Workbench.run.clearSerialBeforeRun'],
+        settings['dockyard32.run.clearSerialBeforeRun'],
         runObject.clearSerialBeforeRun,
         false,
       ),

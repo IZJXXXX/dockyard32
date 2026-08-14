@@ -97,7 +97,7 @@ test('MDK import copies selected inputs and external headers without broad tree 
   assert.match(result.warnings.join('\n'), /scatter file.*retained/i);
   assert.match(result.warnings.join('\n'), /\.lib files were copied/i);
   const reportText = await fs.readFile(
-    path.join(destination, '.stm32-workbench', 'mdk-import.json'),
+    path.join(destination, '.dockyard32', 'mdk-import.json'),
     'utf8',
   );
   assert.doesNotMatch(reportText, new RegExp(escapeRegExp(os.homedir())));
@@ -210,7 +210,7 @@ test('CMake export resolves relative commands and preserves per-file options', a
   assert.match(project, /-O2/);
   assert.equal((await findFiles(destination, 'used.h')).length, 1);
   assert.equal((await findFiles(destination, 'unused.h')).length, 0);
-  const reportText = await fs.readFile(path.join(destination, 'stm32-workbench-export.json'), 'utf8');
+  const reportText = await fs.readFile(path.join(destination, 'dockyard32-export.json'), 'utf8');
   assert.doesNotMatch(reportText, new RegExp(escapeRegExp(os.homedir())));
 });
 

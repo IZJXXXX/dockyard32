@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve STM32 Workbench.
+Thank you for helping improve Dockyard32.
 
 ## Before opening a change
 

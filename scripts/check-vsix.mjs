@@ -7,7 +7,7 @@ const packageVersion = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 ).version;
 const archive = resolve(
-  process.argv[2] ?? `stm32-workbench-${packageVersion}-${expectedTarget}.vsix`,
+  process.argv[2] ?? `dockyard32-${packageVersion}-${expectedTarget}.vsix`,
 );
 const entries = execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
   .split(/\r?\n/u)

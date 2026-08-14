@@ -2,19 +2,19 @@ import { randomBytes } from 'node:crypto';
 
 import * as vscode from 'vscode';
 
-import type { WorkbenchProgress } from '../types/progress';
+import type { Dockyard32Progress } from '../types/progress';
 
 const ACTION_COMMANDS: Readonly<Record<string, string>> = {
-  run: 'stm32Workbench.run',
-  build: 'stm32Workbench.build',
-  flash: 'stm32Workbench.flash',
-  reset: 'stm32Workbench.reset',
-  serial: 'stm32Workbench.openSerial',
-  refresh: 'stm32Workbench.refresh',
-  ai: 'stm32Workbench.openAiAssistant',
-  mcp: 'stm32Workbench.showMcpSetup',
-  importMdk: 'stm32Workbench.importMdk',
-  exportMdk: 'stm32Workbench.exportMdk',
+  run: 'dockyard32.run',
+  build: 'dockyard32.build',
+  flash: 'dockyard32.flash',
+  reset: 'dockyard32.reset',
+  serial: 'dockyard32.openSerial',
+  refresh: 'dockyard32.refresh',
+  ai: 'dockyard32.openAiAssistant',
+  mcp: 'dockyard32.showMcpSetup',
+  importMdk: 'dockyard32.importMdk',
+  exportMdk: 'dockyard32.exportMdk',
 };
 
 export class ActionsViewProvider
@@ -23,13 +23,13 @@ export class ActionsViewProvider
   private readonly disposables: vscode.Disposable[] = [];
   private view?: vscode.WebviewView;
   private webview?: vscode.Webview;
-  private progress: WorkbenchProgress = {
+  private progress: Dockyard32Progress = {
     status: 'idle',
     stage: 'Ready',
     message: 'Ready',
     percent: 0,
   };
-  private visibleOperation?: WorkbenchProgress['operation'];
+  private visibleOperation?: Dockyard32Progress['operation'];
 
   public resolveWebviewView(view: vscode.WebviewView): void {
     this.view = view;
@@ -59,7 +59,7 @@ export class ActionsViewProvider
     );
   }
 
-  public setProgress(progress: WorkbenchProgress): void {
+  public setProgress(progress: Dockyard32Progress): void {
     this.progress = progress;
     if (
       progress.status === 'running' &&
@@ -79,7 +79,7 @@ export class ActionsViewProvider
       this.view.show(true);
       return;
     }
-    await vscode.commands.executeCommand('stm32Workbench.actions.focus');
+    await vscode.commands.executeCommand('dockyard32.actions.focus');
     await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
   }
 

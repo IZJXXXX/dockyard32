@@ -7,7 +7,7 @@ import {
   flashFirmware,
   resetTarget,
 } from '../core/flash';
-import { WorkbenchOperationLock } from '../core/operationLock';
+import { Dockyard32OperationLock } from '../core/operationLock';
 import { detectProject } from '../core/project';
 import { buildAndRun, validateFirmwareArtifact } from '../core/run';
 import { readLastRunResult, writeLastRunResult } from '../core/runStore';
@@ -39,7 +39,7 @@ import type {
   OperationLock,
   RunResult,
   RunSerialService,
-  WorkbenchOperation,
+  Dockyard32Operation,
 } from '../types/run';
 import type { SerialStatus, SerialWaitResult } from '../types/serial';
 import type { DevelopmentTools, ToolDiscoveryOptions } from '../types/tools';
@@ -112,7 +112,7 @@ class Stm32AgentApi implements AgentApi {
   public constructor(options: CreateAgentApiOptions) {
     this.workspacePath = path.resolve(options.workspacePath);
     this.operationLock =
-      options.operationLock ?? new WorkbenchOperationLock(this.workspacePath);
+      options.operationLock ?? new Dockyard32OperationLock(this.workspacePath);
     this.serial = options.serial;
     this.serialOwnedByExtension = options.serialOwnedByExtension ?? false;
     this.dependencies = {
@@ -430,7 +430,7 @@ class Stm32AgentApi implements AgentApi {
       return propagateFailure(serial);
     }
     if (!serial.data.getSerialStatus().connected) {
-      return fail('SERIAL_NOT_CONNECTED', 'The Workbench serial port is not connected.', 'serial');
+      return fail('SERIAL_NOT_CONNECTED', 'The Dockyard32 serial port is not connected.', 'serial');
     }
     const result = await serial.data.sendSerial(
       `${input.text}${lineEnding(input.lineEnding ?? 'none')}`,
@@ -462,7 +462,7 @@ class Stm32AgentApi implements AgentApi {
       return propagateFailure(serial);
     }
     if (!serial.data.getSerialStatus().connected) {
-      return fail('SERIAL_NOT_CONNECTED', 'The Workbench serial port is not connected.', 'serial');
+      return fail('SERIAL_NOT_CONNECTED', 'The Dockyard32 serial port is not connected.', 'serial');
     }
     const result = await serial.data.waitSerial(input.pattern, timeoutMs);
     return result.success
@@ -471,7 +471,7 @@ class Stm32AgentApi implements AgentApi {
   }
 
   private async runLocked<T>(
-    operation: WorkbenchOperation,
+    operation: Dockyard32Operation,
     callback: (
       lease: OperationLease,
       configuration: AgentWorkspaceConfiguration,

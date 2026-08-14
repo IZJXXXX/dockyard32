@@ -7,7 +7,10 @@ const test = require('node:test');
 const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
 const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio.js');
 const { InMemoryTransport } = require('@modelcontextprotocol/sdk/inMemory.js');
-const { createStm32McpServer } = require('../out/mcp/server.js');
+const {
+  createStm32McpServer,
+  resolveMcpWorkspace,
+} = require('../out/mcp/server.js');
 const { STM32_MCP_TOOL_NAMES } = require('../out/mcp/tools.js');
 
 const stdioServerPath = process.env.STM32_MCP_SERVER_PATH
@@ -54,10 +57,10 @@ async function createWorkspace(root, buildFails = false) {
   await fs.writeFile(
     path.join(workspace, '.vscode', 'settings.json'),
     JSON.stringify({
-      'stm32Workbench.tools.cmakePath': cmake,
-      'stm32Workbench.tools.ninjaPath': ninja,
-      'stm32Workbench.tools.armGccPath': gcc,
-      'stm32Workbench.tools.programmerPath': programmer,
+      'dockyard32.tools.cmakePath': cmake,
+      'dockyard32.tools.ninjaPath': ninja,
+      'dockyard32.tools.armGccPath': gcc,
+      'dockyard32.tools.programmerPath': programmer,
     }),
   );
   return workspace;
@@ -80,6 +83,15 @@ function structured(result) {
   assert.ok(result.structuredContent, 'tool should return structuredContent');
   return result.structuredContent;
 }
+
+test('MCP workspace resolver accepts the legacy environment variable', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dockyard32-legacy-env-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  assert.equal(
+    await resolveMcpWorkspace([], { STM32_WORKBENCH_WORKSPACE: root }),
+    await fs.realpath(root),
+  );
+});
 
 test('stdio MCP starts, lists only expected tools, and keeps logs off stdout', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-mcp-'));

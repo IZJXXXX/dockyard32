@@ -5,7 +5,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { createAgentApi } = require('../out/agent/api.js');
-const { WorkbenchOperationLock } = require('../out/core/operationLock.js');
+const { readAgentWorkspaceConfiguration } = require('../out/agent/config.js');
+const { Dockyard32OperationLock } = require('../out/core/operationLock.js');
 
 const workspace = '/workspace/F407';
 
@@ -140,10 +141,32 @@ function createApi(overrides = {}, options = {}) {
   return createAgentApi({
     workspacePath: workspace,
     dependencies,
-    operationLock: new WorkbenchOperationLock(),
+    operationLock: new Dockyard32OperationLock(),
     ...options,
   });
 }
+
+test('Agent configuration reads legacy STM32 Workbench settings', async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dockyard32-legacy-config-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await fs.mkdir(path.join(root, '.vscode'));
+  await fs.writeFile(
+    path.join(root, '.vscode', 'settings.json'),
+    JSON.stringify({
+      'stm32Workbench.tools.cmakePath': '/legacy/cmake',
+      'stm32Workbench.flash.verify': false,
+    }),
+  );
+  await fs.writeFile(
+    path.join(root, '.vscode', 'stm32-workbench.json'),
+    JSON.stringify({ serial: { baudRate: 57_600 } }),
+  );
+
+  const result = await readAgentWorkspaceConfiguration(root);
+  assert.equal(result.configuredTools.cmake, '/legacy/cmake');
+  assert.equal(result.flashVerify, false);
+  assert.equal(result.serial.baudRate, 57_600);
+});
 
 test('Agent API returns structured project and tool status without VS Code', async () => {
   const api = createApi();
@@ -201,7 +224,7 @@ test('Agent reset and Build & Run reuse structured Core results', async () => {
 });
 
 test('Agent operation lock returns OPERATION_BUSY across actions', async () => {
-  const lock = new WorkbenchOperationLock();
+  const lock = new Dockyard32OperationLock();
   const lease = lock.acquire('run');
   assert.ok(lease);
   const busy = await createApi({}, { operationLock: lock }).reset();
@@ -213,7 +236,7 @@ test('Agent operation lock returns OPERATION_BUSY across actions', async () => {
 test('Agent releases the operation lock when CMake is unavailable', async () => {
   const unavailableTools = tools();
   unavailableTools.cmake = { kind: 'cmake', available: false };
-  const lock = new WorkbenchOperationLock();
+  const lock = new Dockyard32OperationLock();
   const result = await createApi(
     { discoverDevelopmentTools: async () => unavailableTools },
     { operationLock: lock },
@@ -228,8 +251,8 @@ test('Agent releases the operation lock when CMake is unavailable', async () => 
 test('workspace operation lock is shared across independent instances', async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-shared-lock-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const first = new WorkbenchOperationLock(root);
-  const second = new WorkbenchOperationLock(root);
+  const first = new Dockyard32OperationLock(root);
+  const second = new Dockyard32OperationLock(root);
   const lease = first.acquire('run');
   assert.ok(lease);
   assert.equal(second.acquire('flash'), undefined);

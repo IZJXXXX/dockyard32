@@ -12,10 +12,10 @@ const packageJson = JSON.parse(
 const archive = resolve(
   projectDirectory,
   process.argv[2] ??
-    `stm32-workbench-${packageJson.version}-darwin-arm64.vsix`,
+    `dockyard32-${packageJson.version}-darwin-arm64.vsix`,
 );
 const extractionDirectory = await mkdtemp(
-  join(tmpdir(), 'stm32-workbench-installed-vsix-'),
+  join(tmpdir(), 'dockyard32-installed-vsix-'),
 );
 
 function run(command, args, options = {}) {

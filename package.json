@@ -1,18 +1,18 @@
 {
-  "name": "stm32-workbench",
-  "displayName": "STM32 Workbench",
-  "description": "A lightweight, graphical STM32 workflow for Visual Studio Code.",
+  "name": "dockyard32",
+  "displayName": "Dockyard32 — STM32 for macOS",
+  "description": "Native STM32 build, flash, serial, and Keil to CMake workflows for macOS.",
   "version": "0.1.1",
   "publisher": "izjxxxx",
-  "icon": "media/stm32-workbench.png",
+  "icon": "media/dockyard32.png",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IZJXXXX/stm32-workbench.git"
+    "url": "https://github.com/IZJXXXX/dockyard32.git"
   },
-  "homepage": "https://github.com/IZJXXXX/stm32-workbench#readme",
+  "homepage": "https://github.com/IZJXXXX/dockyard32#readme",
   "bugs": {
-    "url": "https://github.com/IZJXXXX/stm32-workbench/issues"
+    "url": "https://github.com/IZJXXXX/dockyard32/issues"
   },
   "packageManager": "pnpm@11.19.0",
   "engines": {
@@ -26,7 +26,10 @@
     "STM32",
     "STM32CubeMX",
     "CMake",
-    "ST-LINK"
+    "ST-LINK",
+    "Keil",
+    "macOS",
+    "Apple Silicon"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -35,133 +38,133 @@
   ],
   "main": "./out/extension.js",
   "bin": {
-    "stm32-workbench-mcp": "./out/mcp/server.js"
+    "dockyard32-mcp": "./out/mcp/server.js"
   },
   "contributes": {
     "commands": [
       {
-        "command": "stm32Workbench.refresh",
+        "command": "dockyard32.refresh",
         "title": "Refresh",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(refresh)"
       },
       {
-        "command": "stm32Workbench.run",
+        "command": "dockyard32.run",
         "title": "Build & Run",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(run-all)"
       },
       {
-        "command": "stm32Workbench.build",
+        "command": "dockyard32.build",
         "title": "Build Project",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(tools)"
       },
       {
-        "command": "stm32Workbench.flash",
+        "command": "dockyard32.flash",
         "title": "Flash Firmware",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(symbol-event)"
       },
       {
-        "command": "stm32Workbench.reset",
+        "command": "dockyard32.reset",
         "title": "Reset Target",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(debug-restart)"
       },
       {
-        "command": "stm32Workbench.openSerial",
+        "command": "dockyard32.openSerial",
         "title": "Open Serial Monitor",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(terminal)"
       },
       {
-        "command": "stm32Workbench.showMcpSetup",
+        "command": "dockyard32.showMcpSetup",
         "title": "Show MCP Setup",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(json)"
       },
       {
-        "command": "stm32Workbench.refreshProjectFiles",
+        "command": "dockyard32.refreshProjectFiles",
         "title": "Refresh Project Files",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(refresh)"
       },
       {
-        "command": "stm32Workbench.showProjectFiles",
+        "command": "dockyard32.showProjectFiles",
         "title": "Show Project Files",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(folder-opened)"
       },
       {
-        "command": "stm32Workbench.openProjectFile",
+        "command": "dockyard32.openProjectFile",
         "title": "Open Project File",
-        "category": "STM32 Workbench"
+        "category": "Dockyard32"
       },
       {
-        "command": "stm32Workbench.openProjectFileWithAi",
+        "command": "dockyard32.openProjectFileWithAi",
         "title": "Open with AI Assistant",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(sparkle)"
       },
       {
-        "command": "stm32Workbench.openAiAssistant",
+        "command": "dockyard32.openAiAssistant",
         "title": "Open AI Assistant",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(sparkle)"
       },
       {
-        "command": "stm32Workbench.importMdk",
+        "command": "dockyard32.importMdk",
         "title": "Import Keil MDK Project to CMake",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(import)"
       },
       {
-        "command": "stm32Workbench.exportMdk",
+        "command": "dockyard32.exportMdk",
         "title": "Export CMake Project to Keil MDK",
-        "category": "STM32 Workbench",
+        "category": "Dockyard32",
         "icon": "$(export)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "stm32-workbench",
-          "title": "STM32 Workbench",
-          "icon": "media/stm32-workbench.svg"
+          "id": "dockyard32",
+          "title": "Dockyard32",
+          "icon": "media/dockyard32.svg"
         }
       ],
       "panel": [
         {
-          "id": "stm32-workbench-serial",
+          "id": "dockyard32-serial",
           "title": "STM32 Serial",
           "icon": "media/serial.svg"
         }
       ]
     },
     "views": {
-      "stm32-workbench": [
+      "dockyard32": [
         {
-          "id": "stm32Workbench.overview",
+          "id": "dockyard32.overview",
           "name": "Status",
           "visibility": "visible"
         },
         {
-          "id": "stm32Workbench.projectFiles",
+          "id": "dockyard32.projectFiles",
           "name": "Project Files",
           "visibility": "visible"
         },
         {
           "type": "webview",
-          "id": "stm32Workbench.actions",
+          "id": "dockyard32.actions",
           "name": "Actions",
           "visibility": "visible"
         }
       ],
-      "stm32-workbench-serial": [
+      "dockyard32-serial": [
         {
           "type": "webview",
-          "id": "stm32Workbench.serialView",
+          "id": "dockyard32.serialView",
           "name": "STM32 Serial",
           "icon": "media/serial.svg",
           "contextualTitle": "STM32 Serial"
@@ -169,70 +172,70 @@
       ]
     },
     "configuration": {
-      "title": "STM32 Workbench",
+      "title": "Dockyard32",
       "properties": {
-        "stm32Workbench.tools.cmakePath": {
+        "dockyard32.tools.cmakePath": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional path to the CMake executable. Leave empty for automatic discovery."
         },
-        "stm32Workbench.tools.ninjaPath": {
+        "dockyard32.tools.ninjaPath": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional path to the Ninja executable. Leave empty for automatic discovery."
         },
-        "stm32Workbench.tools.armGccPath": {
+        "dockyard32.tools.armGccPath": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional path to arm-none-eabi-gcc. Leave empty for automatic discovery."
         },
-        "stm32Workbench.tools.programmerPath": {
+        "dockyard32.tools.programmerPath": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional path to STM32_Programmer_CLI. Leave empty for automatic discovery."
         },
-        "stm32Workbench.mdk.promptOnDetection": {
+        "dockyard32.mdk.promptOnDetection": {
           "type": "boolean",
           "default": true,
           "scope": "resource",
           "description": "Offer native macOS CMake conversion when a Keil MDK project is detected."
         },
-        "stm32Workbench.mdk.defaultImportDirectory": {
+        "dockyard32.mdk.defaultImportDirectory": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional initial folder shown by the MDK import destination picker. The destination is still confirmed on every import."
         },
-        "stm32Workbench.mdk.defaultExportDirectory": {
+        "dockyard32.mdk.defaultExportDirectory": {
           "type": "string",
           "default": "",
           "scope": "resource",
           "description": "Optional initial folder shown by the MDK export destination picker. The destination is still confirmed on every export."
         },
-        "stm32Workbench.flash.verify": {
+        "dockyard32.flash.verify": {
           "type": "boolean",
           "default": true,
           "scope": "resource",
           "description": "Verify firmware after programming."
         },
-        "stm32Workbench.serial.port": {
+        "dockyard32.serial.port": {
           "type": "string",
           "default": "auto",
           "scope": "resource",
           "description": "Serial port path, or auto to select the first available /dev/cu.* port."
         },
-        "stm32Workbench.serial.baudRate": {
+        "dockyard32.serial.baudRate": {
           "type": "integer",
           "default": 115200,
           "minimum": 1,
           "scope": "resource",
           "description": "Serial baud rate."
         },
-        "stm32Workbench.serial.dataBits": {
+        "dockyard32.serial.dataBits": {
           "type": "integer",
           "enum": [
             5,
@@ -244,7 +247,7 @@
           "scope": "resource",
           "description": "Serial data bits."
         },
-        "stm32Workbench.serial.stopBits": {
+        "dockyard32.serial.stopBits": {
           "type": "number",
           "enum": [
             1,
@@ -255,7 +258,7 @@
           "scope": "resource",
           "description": "Serial stop bits."
         },
-        "stm32Workbench.serial.parity": {
+        "dockyard32.serial.parity": {
           "type": "string",
           "enum": [
             "none",
@@ -268,26 +271,26 @@
           "scope": "resource",
           "description": "Serial parity mode."
         },
-        "stm32Workbench.run.waitForSerialReady": {
+        "dockyard32.run.waitForSerialReady": {
           "type": "boolean",
           "default": false,
           "scope": "resource",
           "description": "Wait for a serial readiness pattern after resetting the target."
         },
-        "stm32Workbench.run.readyPattern": {
+        "dockyard32.run.readyPattern": {
           "type": "string",
           "default": "SYSTEM READY",
           "scope": "resource",
           "description": "Serial text that confirms the firmware is ready."
         },
-        "stm32Workbench.run.readyTimeoutMs": {
+        "dockyard32.run.readyTimeoutMs": {
           "type": "integer",
           "default": 5000,
           "minimum": 1,
           "scope": "resource",
           "description": "Maximum time in milliseconds to wait for the serial readiness pattern."
         },
-        "stm32Workbench.run.clearSerialBeforeRun": {
+        "dockyard32.run.clearSerialBeforeRun": {
           "type": "boolean",
           "default": false,
           "scope": "resource",
@@ -298,40 +301,40 @@
     "menus": {
       "view/title": [
         {
-          "command": "stm32Workbench.refresh",
-          "when": "view == stm32Workbench.overview",
+          "command": "dockyard32.refresh",
+          "when": "view == dockyard32.overview",
           "group": "navigation@1"
         },
         {
-          "command": "stm32Workbench.run",
-          "when": "view == stm32Workbench.overview",
+          "command": "dockyard32.run",
+          "when": "view == dockyard32.overview",
           "group": "navigation@2"
         },
         {
-          "command": "stm32Workbench.build",
-          "when": "view == stm32Workbench.overview",
+          "command": "dockyard32.build",
+          "when": "view == dockyard32.overview",
           "group": "navigation@3"
         },
         {
-          "command": "stm32Workbench.flash",
-          "when": "view == stm32Workbench.overview",
+          "command": "dockyard32.flash",
+          "when": "view == dockyard32.overview",
           "group": "navigation@4"
         },
         {
-          "command": "stm32Workbench.openSerial",
-          "when": "view == stm32Workbench.overview",
+          "command": "dockyard32.openSerial",
+          "when": "view == dockyard32.overview",
           "group": "navigation@5"
         },
         {
-          "command": "stm32Workbench.refreshProjectFiles",
-          "when": "view == stm32Workbench.projectFiles",
+          "command": "dockyard32.refreshProjectFiles",
+          "when": "view == dockyard32.projectFiles",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "stm32Workbench.openProjectFileWithAi",
-          "when": "view == stm32Workbench.projectFiles && viewItem == stm32Workbench.projectFile",
+          "command": "dockyard32.openProjectFileWithAi",
+          "when": "view == dockyard32.projectFiles && viewItem == dockyard32.projectFile",
           "group": "inline"
         }
       ]

@@ -1,8 +1,8 @@
-# STM32 Workbench
+# Dockyard32 — STM32 for macOS
 
-STM32 Workbench is a lightweight, graphical STM32 workflow for macOS and Visual Studio Code. It keeps code editing in the native VS Code editor and wraps existing CMake, GNU Arm, STM32CubeProgrammer, ST-LINK, and serial tools behind structured Core APIs.
+Dockyard32 is a lightweight, graphical STM32 workflow for macOS and Visual Studio Code. It keeps code editing in the native VS Code editor and wraps existing CMake, GNU Arm, STM32CubeProgrammer, ST-LINK, and serial tools behind structured Core APIs.
 
-> STM32 Workbench is an independent community project. It is not affiliated with, endorsed by, or supported by STMicroelectronics, Arm, Keil, or Microsoft. STM32, STM32Cube, ST-LINK, Arm, Keil, and Visual Studio Code are trademarks of their respective owners.
+> Dockyard32 is an independent community project. It is not affiliated with, endorsed by, or supported by STMicroelectronics, Arm, Keil, or Microsoft. STM32, STM32Cube, ST-LINK, Arm, Keil, and Visual Studio Code are trademarks of their respective owners.
 
 ## Highlights
 
@@ -15,7 +15,7 @@ STM32 Workbench is a lightweight, graphical STM32 workflow for macOS and Visual 
 - Exports configured CMake projects to an ARM Compiler 6 Keil project.
 - Keeps UI, controller, Core, Agent API, and local stdio MCP layers separate.
 
-![STM32 Workbench overview](docs/images/workbench-overview.png)
+![Dockyard32 overview](docs/images/dockyard32-overview.png)
 
 ## Requirements
 
@@ -35,10 +35,10 @@ STM32CubeCLT or the tool bundles installed by STM32Cube for Visual Studio Code c
 
 ### Install a release VSIX
 
-1. Download `stm32-workbench-<version>-darwin-arm64.vsix` from GitHub Releases.
+1. Download `dockyard32-<version>-darwin-arm64.vsix` from GitHub Releases.
 2. In VS Code, open **Extensions** → **…** → **Install from VSIX…**.
 3. Select the VSIX and reload the VS Code window when prompted.
-4. Open an STM32 project folder and select the STM32 Workbench icon.
+4. Open an STM32 project folder and select the Dockyard32 icon.
 
 No terminal is required for normal Build, Flash, Reset, serial, import, or export use.
 
@@ -46,7 +46,7 @@ No terminal is required for normal Build, Flash, Reset, serial, import, or expor
 
 1. Install the VSIX and reload VS Code.
 2. Open the folder containing the STM32 `.ioc`, `CMakeLists.txt`, or Keil `.uvprojx` file.
-3. Open **STM32 Workbench** in the Activity Bar and wait for tool/device detection.
+3. Open **Dockyard32** in the Activity Bar and wait for tool/device detection.
 4. Select **Build Project**, then use **Flash Firmware** or **Build & Run**.
 5. Open **STM32 Serial**, choose a `/dev/cu.*` port and baud rate, and select **Connect**.
 

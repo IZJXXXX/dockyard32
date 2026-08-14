@@ -9,91 +9,91 @@ async function run() {
   );
   const extensionId = `${manifest.publisher}.${manifest.name}`;
   const extension = vscode.extensions.getExtension(extensionId);
-  assert.ok(extension, 'STM32 Workbench extension should be discoverable');
+  assert.ok(extension, 'Dockyard32 extension should be discoverable');
 
   await extension.activate();
   assert.equal(extension.isActive, true, 'extension should activate successfully');
 
   const commands = await vscode.commands.getCommands(true);
   assert.ok(
-    commands.includes('stm32Workbench.refresh'),
+    commands.includes('dockyard32.refresh'),
     'Phase 1 refresh command should remain registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.build'),
+    commands.includes('dockyard32.build'),
     'Phase 2 build command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.run'),
+    commands.includes('dockyard32.run'),
     'Phase 5 Build & Run command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.flash'),
+    commands.includes('dockyard32.flash'),
     'Phase 3 flash command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.reset'),
+    commands.includes('dockyard32.reset'),
     'Phase 3 reset command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.openSerial'),
+    commands.includes('dockyard32.openSerial'),
     'Phase 4 serial monitor command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.showMcpSetup'),
+    commands.includes('dockyard32.showMcpSetup'),
     'Phase 6 MCP setup command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.refreshProjectFiles'),
+    commands.includes('dockyard32.refreshProjectFiles'),
     'Project Files refresh command should be registered',
   );
   assert.ok(
-    commands.includes('stm32Workbench.showProjectFiles'),
+    commands.includes('dockyard32.showProjectFiles'),
     'Status project row should navigate to Project Files',
   );
   assert.ok(
-    commands.includes('stm32Workbench.openProjectFile'),
+    commands.includes('dockyard32.openProjectFile'),
     'Project Files should open files in native editor tabs',
   );
   assert.ok(
-    commands.includes('stm32Workbench.openProjectFileWithAi'),
+    commands.includes('dockyard32.openProjectFileWithAi'),
     'Project Files should offer an AI-assisted open action',
   );
   assert.ok(
-    commands.includes('stm32Workbench.openAiAssistant'),
+    commands.includes('dockyard32.openAiAssistant'),
     'Actions view should expose the native VS Code AI assistant',
   );
 
-  const workbenchViews = extension.packageJSON.contributes.views['stm32-workbench'];
+  const dockyardViews = extension.packageJSON.contributes.views['dockyard32'];
   assert.deepEqual(
-    workbenchViews.map((view) => view.id),
+    dockyardViews.map((view) => view.id),
     [
-      'stm32Workbench.overview',
-      'stm32Workbench.projectFiles',
-      'stm32Workbench.actions',
+      'dockyard32.overview',
+      'dockyard32.projectFiles',
+      'dockyard32.actions',
     ],
-    'Workbench should separate status, project files, and actions',
+    'Dockyard32 should separate status, project files, and actions',
   );
   assert.ok(
-    workbenchViews.every((view) => view.visibility === 'visible'),
-    'All Workbench views should be visible by default',
+    dockyardViews.every((view) => view.visibility === 'visible'),
+    'All Dockyard32 views should be visible by default',
   );
   const overviewTitleCommands = extension.packageJSON.contributes.menus['view/title']
-    .filter((item) => item.when === 'view == stm32Workbench.overview')
+    .filter((item) => item.when === 'view == dockyard32.overview')
     .map((item) => item.command);
   assert.deepEqual(
     overviewTitleCommands,
     [
-      'stm32Workbench.refresh',
-      'stm32Workbench.run',
-      'stm32Workbench.build',
-      'stm32Workbench.flash',
-      'stm32Workbench.openSerial',
+      'dockyard32.refresh',
+      'dockyard32.run',
+      'dockyard32.build',
+      'dockyard32.flash',
+      'dockyard32.openSerial',
     ],
-    'Overview title should expose the compact Workbench shortcuts',
+    'Overview title should expose the compact Dockyard32 shortcuts',
   );
 
-  await vscode.commands.executeCommand('stm32Workbench.showProjectFiles');
+  await vscode.commands.executeCommand('dockyard32.showProjectFiles');
 
   const { SerialService } = require(path.join(
     extension.extensionPath,
