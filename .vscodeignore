@@ -1,0 +1,14 @@
+.vscode/**
+src/**
+test/**
+.gitignore
+eslint.config.mjs
+tsconfig.json
+**/*.map
+node_modules/@serialport/bindings-cpp/prebuilds/android-*/**
+node_modules/@serialport/bindings-cpp/prebuilds/linux-*/**
+node_modules/@serialport/bindings-cpp/prebuilds/win32-*/**
+node_modules/@serialport/bindings-cpp/build/**
+node_modules/@serialport/bindings-cpp/src/**
+node_modules/@serialport/bindings-cpp/binding.gyp
+node_modules/.pnpm/**

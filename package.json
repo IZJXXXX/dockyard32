@@ -1,0 +1,370 @@
+{
+  "name": "stm32-workbench",
+  "displayName": "STM32 Workbench",
+  "description": "A lightweight, graphical STM32 workflow for Visual Studio Code.",
+  "version": "0.1.0",
+  "publisher": "izjxxxx",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IZJXXXX/stm32-workbench.git"
+  },
+  "homepage": "https://github.com/IZJXXXX/stm32-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/IZJXXXX/stm32-workbench/issues"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "vscode": "^1.96.0",
+    "node": ">=22 <25"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "STM32",
+    "STM32CubeMX",
+    "CMake",
+    "ST-LINK"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/*.ioc",
+    "workspaceContains:**/*.uvprojx"
+  ],
+  "main": "./out/extension.js",
+  "bin": {
+    "stm32-workbench-mcp": "./out/mcp/server.js"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "stm32Workbench.refresh",
+        "title": "Refresh",
+        "category": "STM32 Workbench",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "stm32Workbench.run",
+        "title": "Build & Run",
+        "category": "STM32 Workbench",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "stm32Workbench.build",
+        "title": "Build Project",
+        "category": "STM32 Workbench",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "stm32Workbench.flash",
+        "title": "Flash Firmware",
+        "category": "STM32 Workbench",
+        "icon": "$(symbol-event)"
+      },
+      {
+        "command": "stm32Workbench.reset",
+        "title": "Reset Target",
+        "category": "STM32 Workbench",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "stm32Workbench.openSerial",
+        "title": "Open Serial Monitor",
+        "category": "STM32 Workbench",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "stm32Workbench.showMcpSetup",
+        "title": "Show MCP Setup",
+        "category": "STM32 Workbench",
+        "icon": "$(json)"
+      },
+      {
+        "command": "stm32Workbench.refreshProjectFiles",
+        "title": "Refresh Project Files",
+        "category": "STM32 Workbench",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "stm32Workbench.showProjectFiles",
+        "title": "Show Project Files",
+        "category": "STM32 Workbench",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "stm32Workbench.openProjectFile",
+        "title": "Open Project File",
+        "category": "STM32 Workbench"
+      },
+      {
+        "command": "stm32Workbench.openProjectFileWithAi",
+        "title": "Open with AI Assistant",
+        "category": "STM32 Workbench",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "stm32Workbench.openAiAssistant",
+        "title": "Open AI Assistant",
+        "category": "STM32 Workbench",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "stm32Workbench.importMdk",
+        "title": "Import Keil MDK Project to CMake",
+        "category": "STM32 Workbench",
+        "icon": "$(import)"
+      },
+      {
+        "command": "stm32Workbench.exportMdk",
+        "title": "Export CMake Project to Keil MDK",
+        "category": "STM32 Workbench",
+        "icon": "$(export)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "stm32-workbench",
+          "title": "STM32 Workbench",
+          "icon": "media/stm32-workbench.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "stm32-workbench-serial",
+          "title": "STM32 Serial",
+          "icon": "media/serial.svg"
+        }
+      ]
+    },
+    "views": {
+      "stm32-workbench": [
+        {
+          "id": "stm32Workbench.overview",
+          "name": "Status",
+          "visibility": "visible"
+        },
+        {
+          "id": "stm32Workbench.projectFiles",
+          "name": "Project Files",
+          "visibility": "visible"
+        },
+        {
+          "type": "webview",
+          "id": "stm32Workbench.actions",
+          "name": "Actions",
+          "visibility": "visible"
+        }
+      ],
+      "stm32-workbench-serial": [
+        {
+          "type": "webview",
+          "id": "stm32Workbench.serialView",
+          "name": "STM32 Serial",
+          "icon": "media/serial.svg",
+          "contextualTitle": "STM32 Serial"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "STM32 Workbench",
+      "properties": {
+        "stm32Workbench.tools.cmakePath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to the CMake executable. Leave empty for automatic discovery."
+        },
+        "stm32Workbench.tools.ninjaPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to the Ninja executable. Leave empty for automatic discovery."
+        },
+        "stm32Workbench.tools.armGccPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to arm-none-eabi-gcc. Leave empty for automatic discovery."
+        },
+        "stm32Workbench.tools.programmerPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to STM32_Programmer_CLI. Leave empty for automatic discovery."
+        },
+        "stm32Workbench.mdk.promptOnDetection": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Offer native macOS CMake conversion when a Keil MDK project is detected."
+        },
+        "stm32Workbench.mdk.defaultImportDirectory": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional initial folder shown by the MDK import destination picker. The destination is still confirmed on every import."
+        },
+        "stm32Workbench.mdk.defaultExportDirectory": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional initial folder shown by the MDK export destination picker. The destination is still confirmed on every export."
+        },
+        "stm32Workbench.flash.verify": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Verify firmware after programming."
+        },
+        "stm32Workbench.serial.port": {
+          "type": "string",
+          "default": "auto",
+          "scope": "resource",
+          "description": "Serial port path, or auto to select the first available /dev/cu.* port."
+        },
+        "stm32Workbench.serial.baudRate": {
+          "type": "integer",
+          "default": 115200,
+          "minimum": 1,
+          "scope": "resource",
+          "description": "Serial baud rate."
+        },
+        "stm32Workbench.serial.dataBits": {
+          "type": "integer",
+          "enum": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "default": 8,
+          "scope": "resource",
+          "description": "Serial data bits."
+        },
+        "stm32Workbench.serial.stopBits": {
+          "type": "number",
+          "enum": [
+            1,
+            1.5,
+            2
+          ],
+          "default": 1,
+          "scope": "resource",
+          "description": "Serial stop bits."
+        },
+        "stm32Workbench.serial.parity": {
+          "type": "string",
+          "enum": [
+            "none",
+            "even",
+            "odd",
+            "mark",
+            "space"
+          ],
+          "default": "none",
+          "scope": "resource",
+          "description": "Serial parity mode."
+        },
+        "stm32Workbench.run.waitForSerialReady": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Wait for a serial readiness pattern after resetting the target."
+        },
+        "stm32Workbench.run.readyPattern": {
+          "type": "string",
+          "default": "SYSTEM READY",
+          "scope": "resource",
+          "description": "Serial text that confirms the firmware is ready."
+        },
+        "stm32Workbench.run.readyTimeoutMs": {
+          "type": "integer",
+          "default": 5000,
+          "minimum": 1,
+          "scope": "resource",
+          "description": "Maximum time in milliseconds to wait for the serial readiness pattern."
+        },
+        "stm32Workbench.run.clearSerialBeforeRun": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Clear the raw serial log before Build & Run. Disabled by default so runs can be compared."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "stm32Workbench.refresh",
+          "when": "view == stm32Workbench.overview",
+          "group": "navigation@1"
+        },
+        {
+          "command": "stm32Workbench.run",
+          "when": "view == stm32Workbench.overview",
+          "group": "navigation@2"
+        },
+        {
+          "command": "stm32Workbench.build",
+          "when": "view == stm32Workbench.overview",
+          "group": "navigation@3"
+        },
+        {
+          "command": "stm32Workbench.flash",
+          "when": "view == stm32Workbench.overview",
+          "group": "navigation@4"
+        },
+        {
+          "command": "stm32Workbench.openSerial",
+          "when": "view == stm32Workbench.overview",
+          "group": "navigation@5"
+        },
+        {
+          "command": "stm32Workbench.refreshProjectFiles",
+          "when": "view == stm32Workbench.projectFiles",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "stm32Workbench.openProjectFileWithAi",
+          "when": "view == stm32Workbench.projectFiles && viewItem == stm32Workbench.projectFile",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm exec tsc -p ./",
+    "package:vsix": "node scripts/package-vsix.mjs",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --max-warnings=0",
+    "test": "pnpm run test:unit",
+    "test:unit": "pnpm run compile && node --test test/core.test.cjs test/conversion-safety.test.cjs test/device-family.test.cjs test/mdk.test.cjs test/phase3.test.cjs test/phase4.test.cjs test/phase5.test.cjs test/phase6-agent.test.cjs test/phase6-mcp.test.cjs test/progress.test.cjs test/serial-worker.test.cjs",
+    "test:integration": "pnpm run compile && node test/integration/run.cjs",
+    "check:unit": "pnpm run compile && pnpm run lint && pnpm run test:unit",
+    "check": "pnpm run check:unit && pnpm run test:integration",
+    "check:vsix": "node scripts/check-vsix.mjs",
+    "ci": "pnpm run check && pnpm run package:vsix && pnpm run check:vsix",
+    "mcp:start": "node out/mcp/server.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@types/node": "^22.17.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "^3.9.2",
+    "eslint": "^9.32.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.39.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "jsonc-parser": "3.3.1",
+    "serialport": "^13.0.0",
+    "zod": "4.2.1"
+  }
+}
