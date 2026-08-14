@@ -346,10 +346,11 @@
     "test": "pnpm run test:unit",
     "test:unit": "pnpm run compile && node --test test/core.test.cjs test/conversion-safety.test.cjs test/device-family.test.cjs test/mdk.test.cjs test/phase3.test.cjs test/phase4.test.cjs test/phase5.test.cjs test/phase6-agent.test.cjs test/phase6-mcp.test.cjs test/progress.test.cjs test/serial-worker.test.cjs",
     "test:integration": "pnpm run compile && node test/integration/run.cjs",
+    "test:vsix": "node scripts/test-vsix.mjs",
     "check:unit": "pnpm run compile && pnpm run lint && pnpm run test:unit",
     "check": "pnpm run check:unit && pnpm run test:integration",
     "check:vsix": "node scripts/check-vsix.mjs",
-    "ci": "pnpm run check && pnpm run package:vsix && pnpm run check:vsix",
+    "ci": "pnpm run check && pnpm run package:vsix && pnpm run check:vsix && pnpm run test:vsix",
     "mcp:start": "node out/mcp/server.js"
   },
   "devDependencies": {

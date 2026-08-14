@@ -111,7 +111,8 @@ pnpm run check:unit       # TypeScript, lint, Core and conversion tests
 pnpm run test:integration # Real VS Code Extension Host activation test
 pnpm run package:vsix     # Reproducible darwin-arm64 VSIX with flattened runtime dependencies
 pnpm run check:vsix       # Target, native-module, privacy, and archive checks
-pnpm run ci               # Full local equivalent of macOS CI
+pnpm run test:vsix        # Unpack the release VSIX and activate it in an Extension Host
+pnpm run ci               # Fast local CI; fixed VS Code 1.96 runs in GitHub Actions
 ```
 
 The macOS GitHub Actions workflow installs from `pnpm-lock.yaml`, runs current and fixed VS Code 1.96 Extension Host integration tests, packages the `darwin-arm64` extension, scans its text for local paths and common secret formats, verifies the native serial runtime, and uploads the VSIX artifact.
@@ -122,6 +123,7 @@ The macOS GitHub Actions workflow installs from `pnpm-lock.yaml`, runs current a
 - [Validation record](docs/validation.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Contributing](CONTRIBUTING.md)
+- [Release checklist](docs/releasing.md)
 - [Security policy](SECURITY.md)
 - [Changelog](CHANGELOG.md)
 

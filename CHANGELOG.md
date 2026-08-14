@@ -27,6 +27,7 @@ All notable changes to this project are documented here. The format follows Keep
 - VSIX packaging uses a flattened, Darwin-only production dependency tree, declares `darwin-arm64`, and rejects non-macOS native modules.
 - VSIX inspection scans packaged text for local user paths and common secret/token formats.
 - Extension Host integration tests include the declared minimum VS Code 1.96 release.
+- CI unpacks the final VSIX and activates that packaged copy in an Extension Host, including its pruned runtime dependencies.
 
 ## [0.1.0] - 2026-08-14
 

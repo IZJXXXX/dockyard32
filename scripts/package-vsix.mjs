@@ -37,7 +37,9 @@ function parseArguments(args) {
   let output;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
-    if (argument === "--target") {
+    if (argument === "--") {
+      continue;
+    } else if (argument === "--target") {
       target = args[index + 1];
       index += 1;
     } else if (argument === "--out") {
@@ -147,7 +149,7 @@ try {
       })),
   );
   await Promise.all(
-    ["build", "src", "binding.gyp", join("node_modules", ".bin")].map(
+    ["build", "src", "binding.gyp"].map(
       (name) => rm(join(bindingsDirectory, name), {
         recursive: true,
         force: true,

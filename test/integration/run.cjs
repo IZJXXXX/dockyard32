@@ -3,7 +3,9 @@ const fs = require('node:fs');
 const { runTests } = require('@vscode/test-electron');
 
 async function main() {
-  const extensionDevelopmentPath = path.resolve(__dirname, '..', '..');
+  const extensionDevelopmentPath = process.env.EXTENSION_DEVELOPMENT_PATH === undefined
+    ? path.resolve(__dirname, '..', '..')
+    : path.resolve(process.env.EXTENSION_DEVELOPMENT_PATH);
   const extensionTestsPath = path.resolve(__dirname, 'extension.test.cjs');
   const workspace = path.resolve(__dirname, '..', 'fixtures', 'extension-workspace');
   const localMacExecutable = '/Applications/Visual Studio Code.app/Contents/MacOS/Code';

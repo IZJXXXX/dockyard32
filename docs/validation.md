@@ -10,6 +10,7 @@ This page records completed checks without treating unavailable hardware as a pa
 | Core/conversion tests | Pass | 80 tests, including unsafe roots/symlinks, import previews, exact dependency copies, external dependencies, non-empty destinations, per-file options, and F1/F4/G4 profiles |
 | VS Code Extension Host | Pass | Extension activation and all three contributed views registered in a real macOS Extension Host |
 | VSIX inspection | Pass | Manifest target is `darwin-arm64`; only the universal Darwin serial module is present; foreign native modules, build sources, local paths, common secret formats, tests, local metadata, and pnpm internals are rejected |
+| Unpacked release VSIX | Pass | The generated archive was extracted to a temporary directory and that packaged copy activated successfully in a real Extension Host, including serial backend loading |
 | Minimum VS Code 1.96 | CI gate | Fixed-version integration step is configured; the local Microsoft CDN download was too slow to complete, so this row is not recorded as a local pass |
 | Keil AC5 project import | Pass | TFTLCD AC5 project imported to native macOS CMake and built with GNU Arm with 0 errors and 0 warnings |
 | Keil AC6 project export | Pass | TFTLCD exported and rebuilt with Keil MDK 5.42 / ARM Compiler 6.23: AXF and HEX created, 0 errors and 0 warnings |
