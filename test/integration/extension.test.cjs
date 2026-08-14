@@ -4,7 +4,11 @@ const path = require('node:path');
 const vscode = require('vscode');
 
 async function run() {
-  const extension = vscode.extensions.getExtension('izjxxxx.stm32-workbench');
+  const manifest = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf8'),
+  );
+  const extensionId = `${manifest.publisher}.${manifest.name}`;
+  const extension = vscode.extensions.getExtension(extensionId);
   assert.ok(extension, 'STM32 Workbench extension should be discoverable');
 
   await extension.activate();
