@@ -255,6 +255,7 @@ async function createMdkFixture(multipleTargets = false) {
   const external = await fs.mkdtemp(path.join(os.tmpdir(), 'stm32-external-dependency-'));
   await fs.mkdir(path.join(root, 'Src'), { recursive: true });
   await fs.mkdir(path.join(root, 'Inc'), { recursive: true });
+  await fs.mkdir(path.join(root, 'Cube', 'gcc'), { recursive: true });
   await fs.mkdir(path.join(external, 'Src'), { recursive: true });
   await fs.mkdir(path.join(external, 'Inc'), { recursive: true });
   await fs.writeFile(path.join(root, 'Src', 'main.c'), '#include "main.h"\n#include "embedded.c"\nint main(void){return embedded();}\n');
@@ -267,7 +268,10 @@ async function createMdkFixture(multipleTargets = false) {
   await fs.writeFile(path.join(external, 'Inc', 'unused.h'), '#pragma once\n');
   await fs.writeFile(path.join(external, 'Inc', 'unused.bin'), Buffer.alloc(64));
   await fs.writeFile(path.join(root, 'startup_stm32f407xx.s'), 'AREA RESET, DATA, READONLY\n');
-  await fs.writeFile(path.join(root, 'startup_stm32f407xx.S'), '.syntax unified\n.global Reset_Handler\nReset_Handler: b .\n');
+  await fs.writeFile(
+    path.join(root, 'Cube', 'gcc', 'startup_stm32f407xx.S'),
+    '.syntax unified\n.global Reset_Handler\nReset_Handler: b .\n',
+  );
   await fs.writeFile(path.join(root, 'custom.sct'), 'LR_IROM1 0x08000000 0x00100000 {}\n');
   await fs.writeFile(path.join(root, 'vendor.lib'), Buffer.alloc(16));
   await fs.writeFile(path.join(root, 'secret-do-not-copy.txt'), 'secret');
