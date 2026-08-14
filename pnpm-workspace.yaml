@@ -1,6 +1,4 @@
-onlyBuiltDependencies:
-  - '@serialport/bindings-cpp'
-
-ignoredBuiltDependencies:
-  - '@vscode/vsce-sign'
-  - keytar
+allowBuilds:
+  '@serialport/bindings-cpp': true
+  '@vscode/vsce-sign': false
+  keytar: false
