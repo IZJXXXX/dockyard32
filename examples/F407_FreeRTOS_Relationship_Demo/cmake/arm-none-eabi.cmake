@@ -1,0 +1,15 @@
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
+find_program(ARM_NONE_EABI_GCC NAMES arm-none-eabi-gcc REQUIRED)
+get_filename_component(ARM_NONE_EABI_BIN_DIR "${ARM_NONE_EABI_GCC}" DIRECTORY)
+
+set(CMAKE_C_COMPILER "${ARM_NONE_EABI_GCC}")
+set(CMAKE_ASM_COMPILER "${ARM_NONE_EABI_GCC}")
+set(CMAKE_OBJCOPY "${ARM_NONE_EABI_BIN_DIR}/arm-none-eabi-objcopy" CACHE FILEPATH "GNU Arm objcopy" FORCE)
+set(CMAKE_SIZE "${ARM_NONE_EABI_BIN_DIR}/arm-none-eabi-size" CACHE FILEPATH "GNU Arm size" FORCE)
+
+if(NOT EXISTS "${CMAKE_OBJCOPY}" OR NOT EXISTS "${CMAKE_SIZE}")
+  message(FATAL_ERROR "The selected GNU Arm toolchain is missing objcopy or size: ${ARM_NONE_EABI_BIN_DIR}")
+endif()

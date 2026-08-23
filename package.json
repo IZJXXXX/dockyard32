@@ -1,8 +1,8 @@
 {
   "name": "dockyard32",
   "displayName": "Dockyard32 — STM32 for macOS",
-  "description": "Native STM32 build, flash, serial, and Keil to CMake workflows for macOS.",
-  "version": "0.1.1",
+  "description": "Apple Silicon preview for STM32 build, flash, serial, RTOS inspection, and Keil conversion on macOS.",
+  "version": "0.3.0",
   "publisher": "izjxxxx",
   "icon": "media/dockyard32.png",
   "license": "MIT",
@@ -29,7 +29,9 @@
     "ST-LINK",
     "Keil",
     "macOS",
-    "Apple Silicon"
+    "Apple Silicon",
+    "FreeRTOS",
+    "RTOS"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -77,6 +79,24 @@
         "title": "Open Serial Monitor",
         "category": "Dockyard32",
         "icon": "$(terminal)"
+      },
+      {
+        "command": "dockyard32.openRtos",
+        "title": "Open RTOS Inspector",
+        "category": "Dockyard32",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "dockyard32.refreshRtos",
+        "title": "Detect RTOS",
+        "category": "Dockyard32",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "dockyard32.captureRtos",
+        "title": "Capture RTOS Snapshot",
+        "category": "Dockyard32",
+        "icon": "$(debug-pause)"
       },
       {
         "command": "dockyard32.showMcpSetup",
@@ -139,6 +159,11 @@
           "id": "dockyard32-serial",
           "title": "STM32 Serial",
           "icon": "media/serial.svg"
+        },
+        {
+          "id": "dockyard32-rtos",
+          "title": "Dockyard32 RTOS",
+          "icon": "media/rtos.svg"
         }
       ]
     },
@@ -169,6 +194,15 @@
           "icon": "media/serial.svg",
           "contextualTitle": "STM32 Serial"
         }
+      ],
+      "dockyard32-rtos": [
+        {
+          "type": "webview",
+          "id": "dockyard32.rtosView",
+          "name": "Dockyard32 RTOS",
+          "icon": "media/rtos.svg",
+          "contextualTitle": "Dockyard32 RTOS"
+        }
       ]
     },
     "configuration": {
@@ -197,6 +231,31 @@
           "default": "",
           "scope": "resource",
           "description": "Optional path to STM32_Programmer_CLI. Leave empty for automatic discovery."
+        },
+        "dockyard32.rtos.mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "off",
+            "freertos",
+            "threadx",
+            "zephyr"
+          ],
+          "default": "auto",
+          "scope": "resource",
+          "description": "RTOS detection mode. Auto uses project files and ELF symbols; explicit values override ambiguous detection."
+        },
+        "dockyard32.rtos.gdbPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to arm-none-eabi-gdb for RTOS capture. Leave empty for automatic discovery."
+        },
+        "dockyard32.rtos.gdbServerPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional path to ST-LINK_gdbserver for RTOS capture. Leave empty for automatic discovery."
         },
         "dockyard32.mdk.promptOnDetection": {
           "type": "boolean",
@@ -326,6 +385,11 @@
           "group": "navigation@5"
         },
         {
+          "command": "dockyard32.openRtos",
+          "when": "view == dockyard32.overview",
+          "group": "navigation@6"
+        },
+        {
           "command": "dockyard32.refreshProjectFiles",
           "when": "view == dockyard32.projectFiles",
           "group": "navigation"
@@ -347,7 +411,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --max-warnings=0",
     "test": "pnpm run test:unit",
-    "test:unit": "pnpm run compile && node --test test/core.test.cjs test/conversion-safety.test.cjs test/device-family.test.cjs test/mdk.test.cjs test/phase3.test.cjs test/phase4.test.cjs test/phase5.test.cjs test/phase6-agent.test.cjs test/phase6-mcp.test.cjs test/progress.test.cjs test/serial-worker.test.cjs",
+    "test:unit": "pnpm run compile && node --test test/core.test.cjs test/conversion-safety.test.cjs test/device-family.test.cjs test/mdk.test.cjs test/phase3.test.cjs test/phase4.test.cjs test/phase5.test.cjs test/phase6-agent.test.cjs test/phase6-mcp.test.cjs test/progress.test.cjs test/rtos.test.cjs test/rtos-capture.test.cjs test/serial-worker.test.cjs",
     "test:integration": "pnpm run compile && node test/integration/run.cjs",
     "test:vsix": "node scripts/test-vsix.mjs",
     "check:unit": "pnpm run compile && pnpm run lint && pnpm run test:unit",

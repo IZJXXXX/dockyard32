@@ -4,8 +4,28 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-24
+
+Apple Silicon Preview. This release is not declared stable.
+
+### Added
+
+- Automatic FreeRTOS, ThreadX, and Zephyr project detection with ELF-symbol confirmation.
+- FreeRTOS live task, stack, queue, semaphore, mutex ownership, and wait-relationship snapshots through ST-LINK GDB Server and GNU Arm GDB.
+- A dedicated Dockyard32 RTOS panel with Tasks, Objects, and Relationships views.
+- A minimal STM32F407ZGT6 FreeRTOS relationship example with five tasks and registered kernel objects.
+- Fake GDB/GDB Server regression coverage for success, detach failure, nonzero exit, timeouts, startup failure, process cleanup, concurrent capture rejection, and stale-snapshot invalidation.
+
+### Security
+
+- Bounded GDB Server startup and capture time, followed by awaited SIGTERM and SIGKILL fallback cleanup.
+- Capture succeeds only after valid RTOS JSON, a zero GDB exit status, and confirmed detach.
+- Concurrent captures are rejected, and project/kernel/ELF changes invalidate old snapshots.
+
 ### Changed
 
+- FreeRTOS pending-ready tasks are no longer reported as blocked; ambiguous suspended/indefinitely-blocked tasks fall back to `unknown` when the event-list container cannot disambiguate them.
+- ThreadX and Zephyr are explicitly detection-only in this preview.
 - Renamed the extension, Marketplace identity, commands, settings, MCP server, project metadata, and release artifacts from STM32 Workbench to Dockyard32.
 - Added compatibility reads for existing STM32 Workbench workspace configuration and imported-project metadata.
 

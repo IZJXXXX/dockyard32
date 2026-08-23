@@ -2,6 +2,25 @@
 
 This page records completed checks without treating unavailable hardware as a pass.
 
+## 2026-08-24 RTOS Preview 0.3.0
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Fresh dependency install | Pass | Existing `node_modules` was moved out of the repository; `pnpm install --frozen-lockfile` installed 474 packages with pnpm 11.19.0 |
+| TypeScript and ESLint | Pass | Clean compile and zero lint warnings |
+| Unit/Core/conversion tests | Pass | 102 tests passed, including RTOS detection/parser/capture and example-integrity tests |
+| RTOS process safety | Pass | Fake processes cover successful detach, JSON followed by nonzero exit, missing detach, GDB timeout with SIGKILL fallback, server startup failure/timeout, cleanup, duplicate capture rejection, and stale-snapshot invalidation |
+| Source Extension Host | Pass | Dockyard32 activated with the RTOS commands and `dockyard32.rtosView` contribution |
+| F407 example build | Pass | Clean GNU Arm 14.3.1/Ninja build completed 13 steps and produced ELF/HEX; FLASH 9,788 B and RAM 34,912 B |
+| VSIX inspection | Pass | `dockyard32-0.3.0-darwin-arm64.vsix` passed target, privacy, native-module, and archive checks across 4,333 entries |
+| Unpacked release VSIX | Pass | The packaged extension and its pruned serial runtime activated in an Extension Host |
+| Minimum VS Code 1.96 | CI gate | The fixed-version Extension Host job remains configured in `.github/workflows/macos-ci.yml`; it is not claimed as a new local pass here |
+| F407 FreeRTOS live snapshot | Pending | No successful ST-LINK live capture was performed for this validation record |
+| STM32F103 hardware | Pending | No F103 target was connected for this run |
+| STM32G474 hardware | Pending | No G474 target was connected for this run |
+
+The local check ran under Node.js 26.7.0 and therefore emitted the package's expected engine warning (`>=22 <25`). Release CI pins Node.js 22.20.0 from `.node-version`; functional checks still passed locally. This preview should use Node 22 for development and CI.
+
 ## 2026-08-15 Dockyard32 rename checks
 
 | Check | Result | Evidence |
