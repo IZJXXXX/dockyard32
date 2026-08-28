@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-29
+
+### Fixed
+
+- Prefer physical `/dev/cu.*` USB serial devices over macOS Bluetooth and debug-console endpoints during automatic selection, while keeping every valid port available for manual selection.
+- Verified the WCH `1A86:55D3` USB serial path with the real VS Code Extension Host runtime at 115200 8N1.
+
 ## [0.3.0] - 2026-08-24
 
 Apple Silicon Preview. This release is not declared stable.

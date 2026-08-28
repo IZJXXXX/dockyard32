@@ -2,7 +2,7 @@
   "name": "dockyard32",
   "displayName": "Dockyard32 — STM32 for macOS",
   "description": "Apple Silicon preview for STM32 build, flash, serial, RTOS inspection, and Keil conversion on macOS.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "izjxxxx",
   "icon": "media/dockyard32.png",
   "license": "MIT",

@@ -2,7 +2,7 @@
 
 Dockyard32 is a lightweight, graphical STM32 workflow for macOS and Visual Studio Code. It keeps code editing in the native VS Code editor and wraps existing CMake, GNU Arm, STM32CubeProgrammer, ST-LINK, and serial tools behind structured Core APIs.
 
-> **0.3.0 is an Apple Silicon Preview, not a stable release.** Keep independent recovery/programming tools available and validate generated firmware and conversion output before production use.
+> **0.3.x is an Apple Silicon Preview, not a stable release.** Keep independent recovery/programming tools available and validate generated firmware and conversion output before production use.
 
 > Dockyard32 is an independent community project. It is not affiliated with, endorsed by, or supported by STMicroelectronics, Arm, Keil, or Microsoft. STM32, STM32Cube, ST-LINK, Arm, Keil, and Visual Studio Code are trademarks of their respective owners.
 

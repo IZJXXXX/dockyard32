@@ -2,6 +2,18 @@
 
 This page records completed checks without treating unavailable hardware as a pass.
 
+## 2026-08-29 serial selection fix 0.3.1
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| macOS driver binding | Pass | WCH `1A86:55D3` appears as `/dev/cu.usbmodem5A7B0294941` through Apple's serial stack; no additional driver is required on this host |
+| Dockyard32 live receive | Pass | Real VS Code Extension Host runtime opened the preferred callout path at 115200 8N1 and received 1,304 bytes in two seconds |
+| Automatic selection | Pass | Physical USB callout ports sort ahead of Bluetooth/debug-console endpoints; all endpoints remain manually selectable |
+| Unit/Core/conversion tests | Pass | 102 tests passed, including the updated physical USB port-priority regression |
+| Source and packaged Extension Host | Pass | Source activation and final unpacked VSIX activation passed |
+| VSIX inspection | Pass | `dockyard32-0.3.1-darwin-arm64.vsix` passed target, privacy, native-module, and archive checks across 4,333 entries |
+| Python assistant | Pass | Version 2.1.1 auto-selects the physical USB port and displays firmware streams that omit CR/LF using bounded partial chunks |
+
 ## 2026-08-24 RTOS Preview 0.3.0
 
 | Check | Result | Evidence |

@@ -43,6 +43,13 @@ class MockAdapter {
         productId: '7523',
       },
       { path: '/dev/cu.Bluetooth-Incoming-Port' },
+      { path: '/dev/cu.debug-console' },
+      {
+        path: '/dev/cu.usbmodem5A7B0294941',
+        friendlyName: 'USB Single Serial',
+        vendorId: '1A86',
+        productId: '55D3',
+      },
       { path: '/dev/custom-uart' },
     ];
   }
@@ -61,16 +68,18 @@ const configuration = {
   parity: 'none',
 };
 
-test('serial ports prioritize /dev/cu.* without excluding other valid ports', async () => {
+test('serial ports prioritize physical USB callout devices without excluding other valid ports', async () => {
   const service = new SerialService({ adapter: new MockAdapter() });
   const ports = await service.listSerialPorts();
   assert.deepEqual(
     ports.map((port) => port.path),
     [
-      '/dev/cu.Bluetooth-Incoming-Port',
+      '/dev/cu.usbmodem5A7B0294941',
       '/dev/cu.wchusbserial110',
-      '/dev/custom-uart',
       '/dev/tty.usbmodem1201',
+      '/dev/custom-uart',
+      '/dev/cu.Bluetooth-Incoming-Port',
+      '/dev/cu.debug-console',
     ],
   );
   assert.equal(ports[1].manufacturer, 'WCH');
