@@ -666,19 +666,42 @@ function isWorkerMessage(value: unknown): value is SerialWorkerMessage {
 }
 
 function compareSerialPorts(left: SerialPortInfo, right: SerialPortInfo): number {
-  const leftPriority = serialPortPriority(left.path);
-  const rightPriority = serialPortPriority(right.path);
+  const leftPriority = serialPortPriority(left);
+  const rightPriority = serialPortPriority(right);
   return leftPriority - rightPriority || left.path.localeCompare(right.path);
 }
 
-function serialPortPriority(portPath: string): number {
-  if (portPath.startsWith('/dev/cu.')) {
+function serialPortPriority(port: SerialPortInfo): number {
+  const searchable = [
+    port.path,
+    port.friendlyName,
+    port.manufacturer,
+    port.vendorId,
+    port.productId,
+  ].filter((value): value is string => value !== undefined).join(' ').toLowerCase();
+  const isCallout = port.path.startsWith('/dev/cu.');
+  const isDialIn = port.path.startsWith('/dev/tty.');
+  const isSystemOnly = /bluetooth|debug-console/u.test(searchable);
+  const isUsbSerial = port.vendorId !== undefined ||
+    /usbmodem|usbserial|wchusbserial|slab_usb|cp210|ch34|ch91|ftdi|usb single serial/u
+      .test(searchable);
+
+  if (isSystemOnly) {
+    return isCallout ? 40 : 60;
+  }
+  if (isCallout && isUsbSerial) {
     return 0;
   }
-  if (portPath.startsWith('/dev/tty.')) {
-    return 2;
+  if (isCallout) {
+    return 10;
   }
-  return 1;
+  if (isDialIn && isUsbSerial) {
+    return 20;
+  }
+  if (!isDialIn && isUsbSerial) {
+    return 15;
+  }
+  return isDialIn ? 50 : 30;
 }
 
 function validateConfiguration(

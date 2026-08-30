@@ -2,6 +2,51 @@
 
 This page records completed checks without treating unavailable hardware as a pass.
 
+## 2026-08-31 exact release-toolchain verification 0.3.1
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Fresh dependency install | Pass | The existing dependency tree was moved out of the repository; Node.js 22.20.0 with pnpm 11.19.0 completed `pnpm install --frozen-lockfile` without engine warnings |
+| TypeScript and ESLint | Pass | Clean compile and zero lint warnings |
+| Unit/Core/conversion tests | Pass | 102 tests passed with 0 failures |
+| Source Extension Host | Pass | The source extension activated successfully in a real VS Code Extension Host |
+| VSIX packaging and inspection | Pass | `dockyard32-0.3.1-darwin-arm64.vsix` was rebuilt and passed target-platform, privacy, native-module, and archive checks across 4,333 entries |
+| Unpacked release VSIX | Pass | The final packaged extension and pruned Darwin serial runtime activated successfully from an unpacked VSIX |
+| STM32F103 hardware | Pending | No F103 target was used for this run |
+| STM32F407 hardware | Pending | Build/flash hardware regression was not repeated for this release-toolchain-only run |
+| STM32G474 hardware | Pending | No G474 target was used for this run |
+
+## 2026-08-29 serial selection fix 0.3.1
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| macOS driver binding | Pass | WCH `1A86:55D3` appears as `/dev/cu.usbmodem5A7B0294941` through Apple's serial stack; no additional driver is required on this host |
+| Dockyard32 live receive | Pass | Real VS Code Extension Host runtime opened the preferred callout path at 115200 8N1 and received 1,304 bytes in two seconds |
+| Automatic selection | Pass | Physical USB callout ports sort ahead of Bluetooth/debug-console endpoints; all endpoints remain manually selectable |
+| Unit/Core/conversion tests | Pass | 102 tests passed, including the updated physical USB port-priority regression |
+| Source and packaged Extension Host | Pass | Source activation and final unpacked VSIX activation passed |
+| VSIX inspection | Pass | `dockyard32-0.3.1-darwin-arm64.vsix` passed target, privacy, native-module, and archive checks across 4,333 entries |
+| Python assistant | Pass | Version 2.1.1 auto-selects the physical USB port and displays firmware streams that omit CR/LF using bounded partial chunks |
+
+## 2026-08-24 RTOS Preview 0.3.0
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Fresh dependency install | Pass | Existing `node_modules` was moved out of the repository; `pnpm install --frozen-lockfile` installed 474 packages with pnpm 11.19.0 |
+| TypeScript and ESLint | Pass | Clean compile and zero lint warnings |
+| Unit/Core/conversion tests | Pass | 102 tests passed, including RTOS detection/parser/capture and example-integrity tests |
+| RTOS process safety | Pass | Fake processes cover successful detach, JSON followed by nonzero exit, missing detach, GDB timeout with SIGKILL fallback, server startup failure/timeout, cleanup, duplicate capture rejection, and stale-snapshot invalidation |
+| Source Extension Host | Pass | Dockyard32 activated with the RTOS commands and `dockyard32.rtosView` contribution |
+| F407 example build | Pass | Clean GNU Arm 14.3.1/Ninja build completed 13 steps and produced ELF/HEX; FLASH 9,788 B and RAM 34,912 B |
+| VSIX inspection | Pass | `dockyard32-0.3.0-darwin-arm64.vsix` passed target, privacy, native-module, and archive checks across 4,333 entries |
+| Unpacked release VSIX | Pass | The packaged extension and its pruned serial runtime activated in an Extension Host |
+| Minimum VS Code 1.96 | CI gate | The fixed-version Extension Host job remains configured in `.github/workflows/macos-ci.yml`; it is not claimed as a new local pass here |
+| F407 FreeRTOS live snapshot | Pending | No successful ST-LINK live capture was performed for this validation record |
+| STM32F103 hardware | Pending | No F103 target was connected for this run |
+| STM32G474 hardware | Pending | No G474 target was connected for this run |
+
+The local check ran under Node.js 26.7.0 and therefore emitted the package's expected engine warning (`>=22 <25`). Release CI pins Node.js 22.20.0 from `.node-version`; functional checks still passed locally. This preview should use Node 22 for development and CI.
+
 ## 2026-08-15 Dockyard32 rename checks
 
 | Check | Result | Evidence |

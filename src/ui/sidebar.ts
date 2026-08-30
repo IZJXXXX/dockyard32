@@ -5,6 +5,7 @@ import type { DeviceStatus } from '../types/device';
 import type { FlashResult, ResetResult } from '../types/flash';
 import type { Stm32ProjectInfo } from '../types/project';
 import type { SerialPortInfo, SerialStatus } from '../types/serial';
+import type { RtosDetectionResult } from '../types/rtos';
 import type { RunProgress, RunResult } from '../types/run';
 import type { DevelopmentTools, DiscoveredTool } from '../types/tools';
 
@@ -58,6 +59,8 @@ export class Dockyard32SidebarProvider
   private deviceStatus?: DeviceStatus;
   private serialPorts: readonly SerialPortInfo[] = [];
   private serialStatus?: SerialStatus;
+  private rtosDetection?: RtosDetectionResult;
+  private rtosDetecting = true;
   private detecting = true;
   private detectingHardware = true;
   private buildState: BuildState = { kind: 'idle' };
@@ -119,6 +122,17 @@ export class Dockyard32SidebarProvider
 
   public setSerialStatus(status: SerialStatus): void {
     this.serialStatus = status;
+    this.refresh();
+  }
+
+  public setRtosDetecting(): void {
+    this.rtosDetecting = true;
+    this.refresh();
+  }
+
+  public setRtosDetection(detection: RtosDetectionResult): void {
+    this.rtosDetection = detection;
+    this.rtosDetecting = false;
     this.refresh();
   }
 
@@ -189,6 +203,7 @@ export class Dockyard32SidebarProvider
     return [
       this.createProjectSection(),
       this.createMcuSection(),
+      this.createRtosSection(),
       this.createRunSection(),
       this.createBuildSection(),
       this.createToolsSection(),
@@ -273,6 +288,53 @@ export class Dockyard32SidebarProvider
     return section('MCU', 'circuit-board', [
       value(project.mcu ?? 'Unknown MCU', confidence, 'chip'),
       value(project.family ?? 'Unknown family', undefined, 'symbol-class'),
+    ]);
+  }
+
+  private createRtosSection(): SidebarSection {
+    if (this.rtosDetecting) {
+      return section('RTOS', 'list-tree', [
+        value('Detecting RTOS…', undefined, 'loading~spin'),
+      ]);
+    }
+    const detection = this.rtosDetection;
+    if (detection?.detected !== true || detection.kernel === undefined) {
+      return section('RTOS', 'list-tree', [
+        value('Bare metal / not detected', 'Auto', 'circle-outline'),
+      ]);
+    }
+    const kernel = detection.kernel === 'freertos'
+      ? 'FreeRTOS'
+      : detection.kernel === 'threadx' ? 'ThreadX' : 'Zephyr';
+    const liveSupported = detection.kernel === 'freertos';
+    return section('RTOS', 'list-tree', [
+      {
+        kind: 'value',
+        label: detection.version === undefined
+          ? kernel
+          : `${kernel} ${detection.version}`,
+        description: detection.confidence === 'exact'
+          ? 'Exact'
+          : detection.confidence === 'high' ? 'High confidence' : 'Inferred',
+        icon: 'server-process',
+        tooltip: [
+          ...detection.evidence,
+          ...detection.warnings,
+        ].join('\n'),
+        command: {
+          command: 'dockyard32.openRtos',
+          title: 'Open Dockyard32 RTOS Inspector',
+        },
+      },
+      value(
+        liveSupported
+          ? detection.elfPath === undefined
+            ? 'Build ELF to inspect tasks'
+            : 'Live Inspector ready'
+          : 'Detection only · live reader unavailable',
+        'Open',
+        liveSupported && detection.elfPath !== undefined ? 'pass-filled' : 'warning',
+      ),
     ]);
   }
 

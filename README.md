@@ -2,6 +2,8 @@
 
 Dockyard32 is a lightweight, graphical STM32 workflow for macOS and Visual Studio Code. It keeps code editing in the native VS Code editor and wraps existing CMake, GNU Arm, STM32CubeProgrammer, ST-LINK, and serial tools behind structured Core APIs.
 
+> **0.3.x is an Apple Silicon Preview, not a stable release.** Keep independent recovery/programming tools available and validate generated firmware and conversion output before production use.
+
 > Dockyard32 is an independent community project. It is not affiliated with, endorsed by, or supported by STMicroelectronics, Arm, Keil, or Microsoft. STM32, STM32Cube, ST-LINK, Arm, Keil, and Visual Studio Code are trademarks of their respective owners.
 
 ## Highlights
@@ -13,6 +15,7 @@ Dockyard32 is a lightweight, graphical STM32 workflow for macOS and Visual Studi
 - Runs Save → Build → Flash → Verify → Reset → Serial from one graphical action.
 - Imports selected Keil MDK 5/6 project inputs into a native macOS CMake copy.
 - Exports configured CMake projects to an ARM Compiler 6 Keil project.
+- Detects FreeRTOS automatically and captures live tasks, kernel objects, mutex ownership, and wait relationships through ST-LINK + GNU Arm GDB.
 - Keeps UI, controller, Core, Agent API, and local stdio MCP layers separate.
 
 ![Dockyard32 overview](docs/images/dockyard32-overview.png)
@@ -49,6 +52,7 @@ No terminal is required for normal Build, Flash, Reset, serial, import, or expor
 3. Open **Dockyard32** in the Activity Bar and wait for tool/device detection.
 4. Select **Build Project**, then use **Flash Firmware** or **Build & Run**.
 5. Open **STM32 Serial**, choose a `/dev/cu.*` port and baud rate, and select **Connect**.
+6. For a FreeRTOS debug build, open **Dockyard32 RTOS** and select **Capture Snapshot**.
 
 ### Build from source
 
@@ -75,6 +79,9 @@ The generated VSIX is written to the repository root.
 | CMake → Keil ARM Compiler 6 | Best-effort project generation |
 | Keil ARM Compiler 5 export | Not generated |
 | Windows-native Keil build from macOS | Not provided; export and validate on Windows |
+| FreeRTOS automatic detection | Preview; `.ioc`, sources, headers, CMake, and ELF symbols |
+| FreeRTOS live inspection | Preview; tasks, queues, semaphores, mutex owners, and wait relationships |
+| ThreadX / Zephyr | Detection only; live task reading is not implemented |
 
 See the detailed [support matrix](docs/support-matrix.md).
 
@@ -122,6 +129,8 @@ The macOS GitHub Actions workflow installs from `pnpm-lock.yaml`, runs current a
 - [Support matrix](docs/support-matrix.md)
 - [Validation record](docs/validation.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [RTOS Inspector](docs/rtos-inspector.md)
+- [F407 FreeRTOS relationship example](examples/F407_FreeRTOS_Relationship_Demo/README.md)
 - [Contributing](CONTRIBUTING.md)
 - [Release checklist](docs/releasing.md)
 - [Security policy](SECURITY.md)

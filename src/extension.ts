@@ -19,6 +19,7 @@ import {
   ProjectFilesProvider,
 } from './ui/projectFiles';
 import { SerialController } from './ui/serialController';
+import { RtosController } from './ui/rtosController';
 import { Dockyard32SidebarProvider } from './ui/sidebar';
 
 const promptedMdkProjects = new Set<string>();
@@ -39,6 +40,7 @@ export function activate(context: vscode.ExtensionContext): void {
     (runId, timestamp) => serialController.appendRunMarker(runId, timestamp),
     (progress) => actionsProvider.setProgress(progress),
   );
+  const rtosController = new RtosController(sidebarProvider);
 
   context.subscriptions.push(
     sidebarProvider,
@@ -46,6 +48,7 @@ export function activate(context: vscode.ExtensionContext): void {
     actionsProvider,
     controller,
     serialController,
+    rtosController,
     vscode.window.registerTreeDataProvider(
       'dockyard32.overview',
       sidebarProvider,
@@ -57,6 +60,11 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerWebviewViewProvider(
       'dockyard32.actions',
       actionsProvider,
+    ),
+    vscode.window.registerWebviewViewProvider(
+      'dockyard32.rtosView',
+      rtosController.panel,
+      { webviewOptions: { retainContextWhenHidden: true } },
     ),
     vscode.commands.registerCommand('dockyard32.refresh', () => {
       return controller.refreshAll();
@@ -129,6 +137,16 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('dockyard32.openSerial', () => {
       serialController.showPanel();
     }),
+    vscode.commands.registerCommand('dockyard32.openRtos', () => {
+      rtosController.showPanel();
+    }),
+    vscode.commands.registerCommand('dockyard32.refreshRtos', () => {
+      return rtosController.refresh();
+    }),
+    vscode.commands.registerCommand('dockyard32.captureRtos', () => {
+      rtosController.showPanel();
+      return rtosController.capture();
+    }),
     vscode.commands.registerCommand('dockyard32.showMcpSetup', async () => {
       const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (workspacePath === undefined) {
@@ -164,7 +182,11 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
-  void Promise.all([controller.initialize(), serialController.initialize()]).then(
+  void Promise.all([
+    controller.initialize(),
+    serialController.initialize(),
+    rtosController.initialize(),
+  ]).then(
     async () => {
       if (!(await ensureDockyard32ViewsAvailable())) {
         return;

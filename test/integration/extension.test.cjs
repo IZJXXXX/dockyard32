@@ -40,9 +40,19 @@ async function run() {
     'Phase 4 serial monitor command should be registered',
   );
   assert.ok(
+    commands.includes('dockyard32.openRtos'),
+    'RTOS Inspector command should be registered',
+  );
+  assert.ok(
+    commands.includes('dockyard32.captureRtos'),
+    'RTOS snapshot command should be registered',
+  );
+  assert.ok(
     commands.includes('dockyard32.showMcpSetup'),
     'Phase 6 MCP setup command should be registered',
   );
+  const rtosViews = extension.packageJSON.contributes.views['dockyard32-rtos'];
+  assert.equal(rtosViews[0]?.id, 'dockyard32.rtosView');
   assert.ok(
     commands.includes('dockyard32.refreshProjectFiles'),
     'Project Files refresh command should be registered',
@@ -89,11 +99,13 @@ async function run() {
       'dockyard32.build',
       'dockyard32.flash',
       'dockyard32.openSerial',
+      'dockyard32.openRtos',
     ],
     'Overview title should expose the compact Dockyard32 shortcuts',
   );
 
   await vscode.commands.executeCommand('dockyard32.showProjectFiles');
+  await vscode.commands.executeCommand('dockyard32.openRtos');
 
   const { SerialService } = require(path.join(
     extension.extensionPath,
