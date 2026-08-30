@@ -2,6 +2,20 @@
 
 This page records completed checks without treating unavailable hardware as a pass.
 
+## 2026-08-31 exact release-toolchain verification 0.3.1
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Fresh dependency install | Pass | The existing dependency tree was moved out of the repository; Node.js 22.20.0 with pnpm 11.19.0 completed `pnpm install --frozen-lockfile` without engine warnings |
+| TypeScript and ESLint | Pass | Clean compile and zero lint warnings |
+| Unit/Core/conversion tests | Pass | 102 tests passed with 0 failures |
+| Source Extension Host | Pass | The source extension activated successfully in a real VS Code Extension Host |
+| VSIX packaging and inspection | Pass | `dockyard32-0.3.1-darwin-arm64.vsix` was rebuilt and passed target-platform, privacy, native-module, and archive checks across 4,333 entries |
+| Unpacked release VSIX | Pass | The final packaged extension and pruned Darwin serial runtime activated successfully from an unpacked VSIX |
+| STM32F103 hardware | Pending | No F103 target was used for this run |
+| STM32F407 hardware | Pending | Build/flash hardware regression was not repeated for this release-toolchain-only run |
+| STM32G474 hardware | Pending | No G474 target was used for this run |
+
 ## 2026-08-29 serial selection fix 0.3.1
 
 | Check | Result | Evidence |
